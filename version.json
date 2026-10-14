@@ -1,10 +1,8 @@
 {
   "app": "class-manager",
-  "version": "4.4.0",
+  "version": "4.4.1",
   "notes": [
-    "تکالیف: دکمهٔ ویرایش کنار حذف + گزارش تکالیف کلاس (ماتریس دانش‌آموز × تکلیف)",
-    "رفتار: دکمه‌های ثبت رفتار مثبت/منفی برای هر دانش‌آموز؛ تاریخچهٔ کامل با زدن روی نام",
-    "هشدار پر شدن حافظه (از ۸۰٪) و خطای ذخیره‌نشدن"
+    "آدرس مخزن به‌روزرسانی به C-Management تغییر کرد"
   ],
   "files": [
     "index.html",
@@ -17,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "bca90811c552f7fa08b14bd5c5783aebb95d6faca34c116372ab9e0b6f1a1ffc",
-    "sw.js": "6c18f9acbca9a6bdc79e0a346e3550935f36ae90d567736ab71f61a32be4f819",
+    "index.html": "3e34ba7f28159550931f98ff8862b46914188456fde234508ff51437a6b89dfa",
+    "sw.js": "9305ad1b05e0e1499edbd0eb9cd8bd0fc330ffb6c5e703ca8dcbd20ec70ed3d7",
     "manifest.json": "7192c5a474b9e67dbb1ead2e969f8c3dcc498d0a9508711f15ca0c7dfd885a9b",
     "icon-192.png": "5b7aa6b361f6010778c52d57e94485a4de7150b154e7b8f77e9ba89769df900c",
     "icon-512.png": "16f5b5c73f213684e58b97897ae10b1884cf0b3b16593ac43715fca3e58d9fc8",
