@@ -1,0 +1,29 @@
+{
+  "app": "class-manager",
+  "version": "4.4.0",
+  "notes": [
+    "تکالیف: دکمهٔ ویرایش کنار حذف + گزارش تکالیف کلاس (ماتریس دانش‌آموز × تکلیف)",
+    "رفتار: دکمه‌های ثبت رفتار مثبت/منفی برای هر دانش‌آموز؛ تاریخچهٔ کامل با زدن روی نام",
+    "هشدار پر شدن حافظه (از ۸۰٪) و خطای ذخیره‌نشدن"
+  ],
+  "files": [
+    "index.html",
+    "sw.js",
+    "manifest.json",
+    "icon-192.png",
+    "icon-512.png",
+    "icon-maskable-512.png",
+    "apple-touch-icon.png",
+    "favicon.png"
+  ],
+  "sha256": {
+    "index.html": "bca90811c552f7fa08b14bd5c5783aebb95d6faca34c116372ab9e0b6f1a1ffc",
+    "sw.js": "6c18f9acbca9a6bdc79e0a346e3550935f36ae90d567736ab71f61a32be4f819",
+    "manifest.json": "7192c5a474b9e67dbb1ead2e969f8c3dcc498d0a9508711f15ca0c7dfd885a9b",
+    "icon-192.png": "5b7aa6b361f6010778c52d57e94485a4de7150b154e7b8f77e9ba89769df900c",
+    "icon-512.png": "16f5b5c73f213684e58b97897ae10b1884cf0b3b16593ac43715fca3e58d9fc8",
+    "icon-maskable-512.png": "a4d8b2975b71af28c7cb8ceab4dbe1b4761fec2ec02f832c8786c96d44b616ea",
+    "apple-touch-icon.png": "3c3a3374e1b3d64d67cd80d549cc1f982e0fc8fc82490e90682e62d2abb0b1fb",
+    "favicon.png": "640ce9e40efba40694d426caf3caf4f1e4c7a2310f1218c7905b39bf4bc10d50"
+  }
+}
