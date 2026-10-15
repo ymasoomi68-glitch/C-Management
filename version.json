@@ -1,0 +1,28 @@
+{
+  "app": "cmc-class-manager",
+  "version": "4.5.1",
+  "notes": [
+    "استقلال کامل از نرم‌افزار قبلی: کلیدهای حافظه، کش، شناسهٔ برنامه و نام فایل نسخه جدا شد",
+    "(کلیدها با پیشوند cmc_ ذخیره می‌شوند و دیگر داده‌های نرم‌افزار قبلیِ همین دامنه دیده نمی‌شود)"
+  ],
+  "files": [
+    "index.html",
+    "sw.js",
+    "manifest.json",
+    "icon-192.png",
+    "icon-512.png",
+    "icon-maskable-512.png",
+    "apple-touch-icon.png",
+    "favicon.png"
+  ],
+  "sha256": {
+    "index.html": "c1d83192fbc89580ab6798e54818fd6e0f71f34217900f1b4ed0c1c3b4a462d4",
+    "sw.js": "9e9dde428048f41d4f315ec8f53414ffdf794273bf7a055ea56b1887df7833e2",
+    "manifest.json": "6dc5e75c9adaa1dcf0b08e84ebba9e2e850d8124030daa3615ae632300e96022",
+    "icon-192.png": "5b7aa6b361f6010778c52d57e94485a4de7150b154e7b8f77e9ba89769df900c",
+    "icon-512.png": "16f5b5c73f213684e58b97897ae10b1884cf0b3b16593ac43715fca3e58d9fc8",
+    "icon-maskable-512.png": "a4d8b2975b71af28c7cb8ceab4dbe1b4761fec2ec02f832c8786c96d44b616ea",
+    "apple-touch-icon.png": "3c3a3374e1b3d64d67cd80d549cc1f982e0fc8fc82490e90682e62d2abb0b1fb",
+    "favicon.png": "640ce9e40efba40694d426caf3caf4f1e4c7a2310f1218c7905b39bf4bc10d50"
+  }
+}
