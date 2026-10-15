@@ -6,3 +6,5 @@ deploy.bat
 backup-*.html
 .hash-cache.json
 backups/ 
+backup.bat 
+report.bat 
