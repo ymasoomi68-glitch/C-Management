@@ -1,10 +1,8 @@
 {
-  "v": 1,
-  "alg": "PBKDF2-SHA256",
-  "iterations": 200000,
-  "count": 2,
+  "version": 1,
+  "updated": "2026-10-15T06:28:49.992Z",
+  "count": 1,
   "hashes": [
-    "11f7abbedd03f23004ac3714e7f842af35eff66f1fd7a06d81ed3e38a1e643dd",
-    "e5a1d693b3ee71abaa7ef546204a5afa2a63e4ccd251dd4b64dd1c2b8d42cb39"
+    "29a18ec2ef7a1c2ff6a3f7984666c7ecf5b6d6a0d67374ef25e01410aaf517df"
   ]
 }
