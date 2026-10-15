@@ -12,3 +12,8 @@ menu.bat
 backup.bat 
 report.bat 
 release.bat 
+release.bat
+get-version.js
+get-cache.js
+bump-version.js
+bump-cache.js
