@@ -1,8 +1,10 @@
 {
   "app": "class-manager",
-  "version": "4.4.1",
+  "version": "4.5.0",
   "notes": [
-    "آدرس مخزن به‌روزرسانی به C-Management تغییر کرد"
+    "سیستم مجوز: ساخت حساب فقط برای کد ملی‌های مجاز (هش PBKDF2-SHA256، ۲۰۰٬۰۰۰ تکرار)",
+    "افزودن ابزار license-tools/make-hashes.js برای تولید و جایگذاری هش‌ها",
+    "حساب‌های موجود بدون تغییر کار می‌کنند"
   ],
   "files": [
     "index.html",
@@ -15,7 +17,7 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "3e34ba7f28159550931f98ff8862b46914188456fde234508ff51437a6b89dfa",
+    "index.html": "de7ac0854a3e49a4f66083011256842202a31ecb213a232e2b48a232a15eb5fa",
     "sw.js": "9305ad1b05e0e1499edbd0eb9cd8bd0fc330ffb6c5e703ca8dcbd20ec70ed3d7",
     "manifest.json": "7192c5a474b9e67dbb1ead2e969f8c3dcc498d0a9508711f15ca0c7dfd885a9b",
     "icon-192.png": "5b7aa6b361f6010778c52d57e94485a4de7150b154e7b8f77e9ba89769df900c",

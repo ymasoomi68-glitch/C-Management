@@ -2282,6 +2282,7 @@ var CMAuth = (function(){
     async function signup(name, code, pw){
         code = toEn(code).trim();
         if(!validCode(code)) throw new Error('کد ملی وارد شده معتبر نیست.');
+        if(!(await CMLicense.isAllowed(code))) throw new Error('این کد ملی مجوز استفاده از برنامه را ندارد. برای تهیه مجوز با پشتیبانی تماس بگیرید.');
         if((pw||'').length<6) throw new Error('رمز عبور باید حداقل ۶ کاراکتر باشد.');
         var d=db();
         if(d.users.some(function(u){return u.code===code;})) throw new Error('برای این کد ملی قبلاً حساب ساخته شده است. وارد شوید.');
@@ -2463,6 +2464,69 @@ var CMAuth = (function(){
     return {validCode:validCode, signup:signup, login:login, logout:logout, changePassword:changePassword, deleteAccount:deleteAccount, resetUserData:resetUserData,
             store:store, user:curUser, initUI:initUI, toEn:toEn, _sha256:sha256};
 })();
+
+/* ===== مجوز بر اساس هش کد ملی (CMLicense) =====
+   کد ملی با PBKDF2-SHA256 (۲۰۰٬۰۰۰ تکرار، خروجی ۳۲ بایت) هش و با فهرست تعبیه‌شده مقایسه می‌شود.
+   فهرست را با license-tools/make-hashes.js --inject بسازید؛ دستی ویرایش نکنید.
+   توجه: isAllowed «async» است و Promise<boolean> برمی‌گرداند. */
+var CMLicense = (function(){
+    'use strict';
+    var SALT = 'YOUR_SUPER_SECRET_SALT_CHANGE_ME_2026_class_manager';
+    var ITER = 200000, KEYLEN = 32;
+    var ALLOWED = [
+        /*LICENSE-HASHES-START*/
+        '11f7abbedd03f23004ac3714e7f842af35eff66f1fd7a06d81ed3e38a1e643dd',
+        'e5a1d693b3ee71abaa7ef546204a5afa2a63e4ccd251dd4b64dd1c2b8d42cb39'
+        /*LICENSE-HASHES-END*/
+    ];
+    var set = Object.create(null);
+    ALLOWED.forEach(function(h){ set[String(h).toLowerCase()] = 1; });
+
+    function norm(c){ return CMAuth.toEn(c).replace(/\s+/g,''); }
+    function toHex(u8){ var s=''; for(var i=0;i<u8.length;i++) s += (u8[i]<16?'0':'') + u8[i].toString(16); return s; }
+    var enc = new TextEncoder();
+
+    function hasSubtle(){ return !!(window.crypto && crypto.subtle && crypto.subtle.importKey); }
+
+    async function pbkdf2Subtle(code){
+        var key = await crypto.subtle.importKey('raw', enc.encode(code), 'PBKDF2', false, ['deriveBits']);
+        var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(SALT), iterations:ITER, hash:'SHA-256'}, key, KEYLEN*8);
+        return toHex(new Uint8Array(bits));
+    }
+
+    /* جایگزین خالص-JS برای صفحه‌های بدون crypto.subtle (http غیرایمن)؛ کندتر است (چند ثانیه). */
+    async function pbkdf2JS(code){
+        var sha = CMAuth._sha256, pw = enc.encode(code), salt = enc.encode(SALT), i, j;
+        if(pw.length > 64) pw = sha(pw);
+        var ipad = new Uint8Array(64), opad = new Uint8Array(64);
+        for(i=0;i<64;i++){ var kb = i<pw.length ? pw[i] : 0; ipad[i]=kb^0x36; opad[i]=kb^0x5c; }
+        function hmac(msg){
+            var a = new Uint8Array(64+msg.length); a.set(ipad); a.set(msg,64);
+            var inner = sha(a), b = new Uint8Array(96); b.set(opad); b.set(inner,64);
+            return sha(b);
+        }
+        var m = new Uint8Array(salt.length+4); m.set(salt); m[salt.length+3] = 1;   // INT(1) — یک بلاک ۳۲ بایتی
+        var u = hmac(m), t = new Uint8Array(u);
+        for(i=1;i<ITER;i++){
+            u = hmac(u);
+            for(j=0;j<32;j++) t[j] ^= u[j];
+            if(i % 4000 === 0) await new Promise(function(r){ setTimeout(r,0); });
+        }
+        return toHex(t);
+    }
+
+    function hashCode(code){ return hasSubtle() ? pbkdf2Subtle(norm(code)) : pbkdf2JS(norm(code)); }
+
+    async function isAllowed(code){
+        code = norm(code);
+        if(!/^\d{10}$/.test(code)) return false;
+        var h = await hashCode(code);
+        return set[h] === 1;
+    }
+
+    return {isAllowed:isAllowed, hashCode:hashCode, count:function(){ return ALLOWED.length; }};
+})();
+
 if (window.__CM_LOCKED) { if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', CMAuth.initUI); else CMAuth.initUI(); }
 
 </script>
@@ -7663,7 +7727,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.4.0';
+    var APP_VERSION = '4.5.0';
     var realLS = window.localStorage, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
