@@ -5,3 +5,4 @@ deploy.bat
 *.backup
 backup-*.html
 .hash-cache.json
+backups/ 
