@@ -2,7 +2,7 @@
    📱 Service Worker - کلاس‌یار
    ═══════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'cmc-app-v2';
+var CACHE_NAME = 'cmc-app-v3';
 var CACHE_PREFIX = 'cmc-app-'; // فقط کش‌های همین برنامه؛ به کش برنامه‌های دیگرِ همین دامنه دست نمی‌زنیم
 var CACHE_FILES = [
     './',
@@ -57,7 +57,7 @@ self.addEventListener('fetch', function(event) {
     // درخواست‌های خارج از این سایت (مثل GitHub) را دست نزن
     if (reqUrl.origin !== self.location.origin) return;
     // فایل نسخه همیشه از شبکه خوانده شود
-    if (/\/version\.json$/.test(reqUrl.pathname)) return;
+    if (/\/(version|licenses)\.json$/.test(reqUrl.pathname)) return;
 
     // صفحهٔ اصلی: اول شبکه (تا نسخهٔ کهنهٔ کش‌شده هیچ‌وقت گیر نکند)، اگر آفلاین بود کش
     if (event.request.mode === 'navigate' || /\/(index\.html)?$/.test(reqUrl.pathname)) {

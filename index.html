@@ -2466,22 +2466,31 @@ var CMAuth = (function(){
 })();
 
 /* ===== مجوز بر اساس هش کد ملی (CMLicense) =====
-   کد ملی با PBKDF2-SHA256 (۲۰۰٬۰۰۰ تکرار، خروجی ۳۲ بایت) هش و با فهرست تعبیه‌شده مقایسه می‌شود.
-   فهرست را با license-tools/make-hashes.js --inject بسازید؛ دستی ویرایش نکنید.
+   کد ملی با PBKDF2-SHA256 (۲۰۰٬۰۰۰ تکرار، خروجی ۳۲ بایت) هش و با فهرست هش‌های مجاز مقایسه می‌شود.
+   فهرست در فایل جدا licenses.json است (با license-tools/make-hashes.js ساخته می‌شود) و هنگام ساخت حساب
+   از اینترنت خوانده می‌شود؛ پس افزودن خریدار نیازی به تغییر نسخهٔ برنامه ندارد.
+   اگر آفلاین بود، آخرین فهرستِ موفقِ ذخیره‌شده استفاده می‌شود.
    توجه: isAllowed «async» است و Promise<boolean> برمی‌گرداند. */
 var CMLicense = (function(){
     'use strict';
     var SALT = 'YOUR_SUPER_SECRET_SALT_CHANGE_ME_2026_class_manager';
     var ITER = 200000, KEYLEN = 32;
-    var ALLOWED = [
-        /*LICENSE-HASHES-START*/
-        '11f7abbedd03f23004ac3714e7f842af35eff66f1fd7a06d81ed3e38a1e643dd',
-        'e5a1d693b3ee71abaa7ef546204a5afa2a63e4ccd251dd4b64dd1c2b8d42cb39'
-        /*LICENSE-HASHES-END*/
-    ];
-    var set = Object.create(null);
-    ALLOWED.forEach(function(h){ set[String(h).toLowerCase()] = 1; });
+    var LIST_URL = 'licenses.json', K_CACHE = 'cmclic_cache';   // عمداً با cmc_ شروع نمی‌شود (جزو داده‌های کاربر حساب نشود)
 
+    function toSet(arr){ var s = Object.create(null); (arr||[]).forEach(function(h){ s[String(h).toLowerCase()] = 1; }); return s; }
+    async function loadSet(){
+        try {
+            var r = await fetch(LIST_URL + '?t=' + Date.now(), {cache:'no-store'});
+            if(!r.ok) throw new Error('http');
+            var j = await r.json();
+            if(!j || !Array.isArray(j.hashes)) throw new Error('format');
+            try { localStorage.setItem(K_CACHE, JSON.stringify(j.hashes)); } catch(e){}
+            return toSet(j.hashes);
+        } catch(e){
+            try { var c = JSON.parse(localStorage.getItem(K_CACHE) || 'null'); if(Array.isArray(c)) return toSet(c); } catch(e2){}
+            return null;
+        }
+    }
     function norm(c){ return CMAuth.toEn(c).replace(/\s+/g,''); }
     function toHex(u8){ var s=''; for(var i=0;i<u8.length;i++) s += (u8[i]<16?'0':'') + u8[i].toString(16); return s; }
     var enc = new TextEncoder();
@@ -2520,11 +2529,13 @@ var CMLicense = (function(){
     async function isAllowed(code){
         code = norm(code);
         if(!/^\d{10}$/.test(code)) return false;
+        var set = await loadSet();
+        if(!set) throw new Error('برای بررسی مجوز، اتصال اینترنت لازم است. به اینترنت وصل شوید و دوباره تلاش کنید.');
         var h = await hashCode(code);
         return set[h] === 1;
     }
 
-    return {isAllowed:isAllowed, hashCode:hashCode, count:function(){ return ALLOWED.length; }};
+    return {isAllowed:isAllowed, hashCode:hashCode, load:loadSet};
 })();
 
 if (window.__CM_LOCKED) { if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', CMAuth.initUI); else CMAuth.initUI(); }
@@ -7727,7 +7738,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.5.2';
+    var APP_VERSION = '4.5.3';
     var realLS = window.localStorage, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 

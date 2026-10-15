@@ -1,9 +1,9 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.5.2",
+  "version": "4.5.3",
   "notes": [
-    "تغییر نام برنامه به «کلاس‌یار» و آیکن/رنگ جدید برای جداسازی کامل از نرم‌افزار قبلی",
-    "صفحهٔ اصلی همیشه اول از شبکه گرفته می‌شود تا نسخهٔ کهنهٔ کش‌شده نماند"
+    "مجوزها در فایل جدا licenses.json قرار گرفت (افزودن کاربر دیگر نیازی به تغییر نسخه ندارد)",
+    "مجوزها هنگام ساخت حساب از اینترنت خوانده می‌شود؛ آفلاین از آخرین فهرست ذخیره‌شده"
   ],
   "files": [
     "index.html",
@@ -16,8 +16,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "1fab95d3daf5e7a652b54f8462f99db957b90b09de4ae15fdf58d3988448966b",
-    "sw.js": "4977f592ea6c6cfdcb4254ae1f9c2e4beb36e7c09ca80f442d4d510db5b4e69c",
+    "index.html": "2d630ce9d57b61491bf018de82230a7a3676541f2b6b3eb3dc61bf8a9ad7b5c3",
+    "sw.js": "0a55cf56c4cf5253b743f57f65679ff9e4fa517a07ff4d811c7c2b4c60b0bbf3",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
