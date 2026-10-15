@@ -1,14 +1,14 @@
 {
     "id": "cmc-class-manager",
-    "name": "مدیریت کلاسی",
-    "short_name": "کلاس من",
+    "name": "کلاس‌یار",
+    "short_name": "کلاس‌یار",
     "description": "اپلیکیشن مدیریت کلاس برای معلمان",
     "start_url": "./index.html",
     "scope": "./",
     "display": "standalone",
     "orientation": "portrait",
-    "background_color": "#4f46e5",
-    "theme_color": "#2563eb",
+    "background_color": "#0f766e",
+    "theme_color": "#0d9488",
     "lang": "fa",
     "dir": "rtl",
     "icons": [

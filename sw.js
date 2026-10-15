@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════
-   📱 Service Worker - مدیریت کلاسی
+   📱 Service Worker - کلاس‌یار
    ═══════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'cmc-app-v1';
+var CACHE_NAME = 'cmc-app-v2';
 var CACHE_PREFIX = 'cmc-app-'; // فقط کش‌های همین برنامه؛ به کش برنامه‌های دیگرِ همین دامنه دست نمی‌زنیم
 var CACHE_FILES = [
     './',
@@ -58,6 +58,22 @@ self.addEventListener('fetch', function(event) {
     if (reqUrl.origin !== self.location.origin) return;
     // فایل نسخه همیشه از شبکه خوانده شود
     if (/\/version\.json$/.test(reqUrl.pathname)) return;
+
+    // صفحهٔ اصلی: اول شبکه (تا نسخهٔ کهنهٔ کش‌شده هیچ‌وقت گیر نکند)، اگر آفلاین بود کش
+    if (event.request.mode === 'navigate' || /\/(index\.html)?$/.test(reqUrl.pathname)) {
+        event.respondWith(
+            fetch(event.request, { cache: 'no-store' }).then(function(response) {
+                if (response && response.status === 200 && response.type !== 'opaque') {
+                    var rc = response.clone();
+                    caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, rc); });
+                }
+                return response;
+            }).catch(function() {
+                return caches.match(event.request).then(function(c) { return c || caches.match('./index.html'); });
+            })
+        );
+        return;
+    }
 
     event.respondWith(
         caches.match(event.request).then(function(cached) {

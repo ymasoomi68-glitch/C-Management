@@ -1,9 +1,9 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.5.1",
+  "version": "4.5.2",
   "notes": [
-    "استقلال کامل از نرم‌افزار قبلی: کلیدهای حافظه، کش، شناسهٔ برنامه و نام فایل نسخه جدا شد",
-    "(کلیدها با پیشوند cmc_ ذخیره می‌شوند و دیگر داده‌های نرم‌افزار قبلیِ همین دامنه دیده نمی‌شود)"
+    "تغییر نام برنامه به «کلاس‌یار» و آیکن/رنگ جدید برای جداسازی کامل از نرم‌افزار قبلی",
+    "صفحهٔ اصلی همیشه اول از شبکه گرفته می‌شود تا نسخهٔ کهنهٔ کش‌شده نماند"
   ],
   "files": [
     "index.html",
@@ -16,13 +16,13 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "c1d83192fbc89580ab6798e54818fd6e0f71f34217900f1b4ed0c1c3b4a462d4",
-    "sw.js": "9e9dde428048f41d4f315ec8f53414ffdf794273bf7a055ea56b1887df7833e2",
-    "manifest.json": "6dc5e75c9adaa1dcf0b08e84ebba9e2e850d8124030daa3615ae632300e96022",
-    "icon-192.png": "5b7aa6b361f6010778c52d57e94485a4de7150b154e7b8f77e9ba89769df900c",
-    "icon-512.png": "16f5b5c73f213684e58b97897ae10b1884cf0b3b16593ac43715fca3e58d9fc8",
-    "icon-maskable-512.png": "a4d8b2975b71af28c7cb8ceab4dbe1b4761fec2ec02f832c8786c96d44b616ea",
-    "apple-touch-icon.png": "3c3a3374e1b3d64d67cd80d549cc1f982e0fc8fc82490e90682e62d2abb0b1fb",
-    "favicon.png": "640ce9e40efba40694d426caf3caf4f1e4c7a2310f1218c7905b39bf4bc10d50"
+    "index.html": "1fab95d3daf5e7a652b54f8462f99db957b90b09de4ae15fdf58d3988448966b",
+    "sw.js": "4977f592ea6c6cfdcb4254ae1f9c2e4beb36e7c09ca80f442d4d510db5b4e69c",
+    "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
+    "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
+    "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
+    "icon-maskable-512.png": "98a66f306dabb4e5743f3084483aa1597bb00db98d4b72bfb8af5177ac8653ca",
+    "apple-touch-icon.png": "cf7ff201bb04b42af423ec03c5fdfd89330c4244f453be55a8f06fb0e7b84258",
+    "favicon.png": "4b6ef0cde6737cfc2fde9f2be9ce6703a2be559ad2a5c4b140d7b52b0199dfdd"
   }
 }
