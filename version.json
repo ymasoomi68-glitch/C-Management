@@ -2,8 +2,7 @@
   "app": "cmc-class-manager",
   "version": "4.5.3",
   "notes": [
-    "مجوزها در فایل جدا licenses.json قرار گرفت (افزودن کاربر دیگر نیازی به تغییر نسخه ندارد)",
-    "مجوزها هنگام ساخت حساب از اینترنت خوانده می‌شود؛ آفلاین از آخرین فهرست ذخیره‌شده"
+    "test"
   ],
   "files": [
     "index.html",
@@ -16,7 +15,7 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "2d630ce9d57b61491bf018de82230a7a3676541f2b6b3eb3dc61bf8a9ad7b5c3",
+    "index.html": "e31b7a989833f89c16b0e9b10cde43d94bce38298bdf6352845e666dcae507b5",
     "sw.js": "0a55cf56c4cf5253b743f57f65679ff9e4fa517a07ff4d811c7c2b4c60b0bbf3",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
