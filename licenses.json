@@ -2,8 +2,9 @@
   "v": 1,
   "alg": "PBKDF2-SHA256",
   "iterations": 200000,
-  "count": 1,
+  "count": 2,
   "hashes": [
-    "fc7d1392109147928fed21cde3322c38c693957c1ddb61d6b9d0edb2dbd2b7ef"
+    "fc7d1392109147928fed21cde3322c38c693957c1ddb61d6b9d0edb2dbd2b7ef",
+    "ffd9970c6485745542ba6a7fe59ece2daa299084f1bbdf05c2038a66cf76f781"
   ]
 }
