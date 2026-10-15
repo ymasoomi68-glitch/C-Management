@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.5.3",
+  "version": "4.5.4",
   "notes": [
-    "test release"
+    "fix version bump"
   ],
   "files": [
     "index.html",
@@ -15,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "7f33b55f9dd79127304446210466de89301370bc2eee7e0ae18b897d234fb115",
-    "sw.js": "81fa3cbbf1339ea1c19eb56e2f77ca890ba35200819af26fb0457fee5918eef2",
+    "index.html": "38b265a2cc7e556318b4e864bd5f5caa7a015039e65f6fe7e59c54184efdf1f7",
+    "sw.js": "c1b208c97b62ebb9c0ce9c53e99c1671be089028e2e7cf4321abcfdb6ec83f2f",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
