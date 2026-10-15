@@ -8,3 +8,6 @@ backup-*.html
 backups/ 
 backup.bat 
 report.bat 
+menu.bat 
+backup.bat 
+report.bat 
