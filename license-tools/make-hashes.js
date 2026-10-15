@@ -21,7 +21,7 @@
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), cp = require('child_process');
 
 const ITER = 200000, KEYLEN = 32, DIGEST = 'sha256';
-const DEFAULT_SALT = 'YOUR_SUPER_SECRET_SALT_CHANGE_ME_2026_class_manager';
+const DEFAULT_SALT = '749b359467ca42abb74c16d4f9d7e553c0cd96ae316340cca2f84d6feac9dd39';
 const root = path.join(__dirname, '..');
 const BUYERS = path.join(__dirname, 'buyers.txt');
 const OUT = path.join(root, 'licenses.json');
