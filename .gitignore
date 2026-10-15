@@ -1,3 +1,7 @@
-license-tools/buyers.txt
-license-tools/hashes.txt
-license-tools/.hash-cache.json
+# Ignored files - NOT uploaded to GitHub
+license-tools/
+node_modules/
+deploy.bat
+*.backup
+backup-*.html
+.hash-cache.json
