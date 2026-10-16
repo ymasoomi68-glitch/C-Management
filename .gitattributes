@@ -1,0 +1,15 @@
+# همه فایلهای متنی با LF ذخیره شوند (نه CRLF)
+* text=auto eol=lf
+
+# فایلهای باینری
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.xlsx binary
+*.pdf binary
+
+# فایلهای ویندوزی
+*.bat text eol=crlf
+*.cmd text eol=crlf
