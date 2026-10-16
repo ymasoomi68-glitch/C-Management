@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.1",
+  "version": "4.6.2",
   "notes": [
-    "localForage IndexedDB"
+    "storage display fix"
   ],
   "files": [
     "index.html",
@@ -15,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "745ad070a844edd6f54392cfe224d7da2a35f0e0f2fb13b2a6f30bd211f1c52d",
-    "sw.js": "13f7938d90877e1787daffe6d59a1e585e16613df5f09173c013b2f3eb76f4b3",
+    "index.html": "dd1b5a8f7fa1765c71fbe9b8bf2224e853073a7dd4b6579c469d53cae7ea1ad5",
+    "sw.js": "76f64cb1229a4a100453cedec29a6351cb19e23ece9290af18a2eb4626a080c6",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",

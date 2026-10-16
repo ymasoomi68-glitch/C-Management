@@ -1972,7 +1972,7 @@ window.CMStore = (function(){
                     </div>
                     <div class="settings-item" style="border-bottom:none;">
                         <span class="settings-item-label">ظرفیت تقریبی</span>
-                        <span class="settings-item-value">۵ MB</span>
+                        <span class="settings-item-value" id="statStorageLimit">—</span>
                     </div>
                     <p id="storageWarnText" style="font-size:11px;color:var(--text-muted);margin-top:10px;line-height:1.6;">
                         ⚠️ اگر حافظه پر شد، از داده‌های قدیمی پشتیبان بگیرید و پاک کنید.
@@ -2025,7 +2025,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۲</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -7515,6 +7515,19 @@ var CMPDF = (function(){
             else { sw.style.color = ''; sw.style.fontWeight = ''; sw.textContent = '⚠️ اگر حافظه پر شد، از داده‌های قدیمی پشتیبان بگیرید و پاک کنید. از ۸۰٪ به بعد خودکار هشدار داده می‌شود.'; }
         }
         if (window.CMStorageGuard) window.CMStorageGuard.check(true);
+
+        // === نمایش ظرفیت واقعی حافظه (داینامیک از CMStore) ===
+        var sl = document.getElementById('statStorageLimit');
+        if (sl) {
+            var lim = (u.limit && u.limit > 0) ? u.limit : 0;
+            if (lim >= 1024 * 1024 * 1024) {
+                sl.textContent = toPersianNum(Math.round(lim / 1024 / 1024 / 1024 * 10) / 10) + ' GB';
+            } else if (lim > 0) {
+                sl.textContent = toPersianNum(Math.round(lim / 1024 / 1024)) + ' MB';
+            } else {
+                sl.textContent = '—';
+            }
+        }
     }
 
     // ===== ذخیره تنظیمات =====
@@ -7732,6 +7745,12 @@ var CMPDF = (function(){
     function settingsPageHook() {
         renderSettings();
         renderYearSelectors();
+        // اگر quota (ظرفیت حافظه) هنوز آماده نشده، بعد از آماده شدن دوباره رندر کن
+        if (window.CMStore && window.CMStore.ready) {
+            window.CMStore.ready.then(function () {
+                renderSettings();
+            });
+        }
     }
 
     // ===== سال تحصیلی: انتخاب و ایجاد =====
@@ -7820,7 +7839,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.1';
+    var APP_VERSION = '4.6.2';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
