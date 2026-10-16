@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.2",
+  "version": "4.6.3",
   "notes": [
-    "storage display fix"
+    "rebuild hashes after gitattributes"
   ],
   "files": [
     "index.html",
@@ -15,7 +15,7 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "dd1b5a8f7fa1765c71fbe9b8bf2224e853073a7dd4b6579c469d53cae7ea1ad5",
+    "index.html": "549a90b0238ade5363f116126a44f64ec619b80aa09cefc2b61248100588335b",
     "sw.js": "76f64cb1229a4a100453cedec29a6351cb19e23ece9290af18a2eb4626a080c6",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
