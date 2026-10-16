@@ -1400,6 +1400,7 @@ window.CMStore = (function(){
         <select class="year-select" id="topYearSelect" title="سال تحصیلی"></select>
         <button class="btn-icon" id="btnTheme" title="حالت شب">🌙</button>
         <button class="btn-icon" id="btnSettings" title="تنظیمات">⚙️</button>
+        <button class="btn-icon btn-activate" id="btnActivateFull" title="فعال‌سازی نسخهٔ کامل" aria-label="فعال‌سازی نسخهٔ کامل" style="display:none;color:#f59e0b;">💎</button>
         <button class="btn-icon btn-logout" id="topUserBtn" title="خروج از حساب" aria-label="خروج از حساب"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
     </div>
 </header>
@@ -2025,7 +2026,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۳</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۴</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2362,7 +2363,9 @@ var CMAuth = (function(){
     async function signup(name, code, pw){
         code = toEn(code).trim();
         if(!validCode(code)) throw new Error('کد ملی وارد شده معتبر نیست.');
-        if(!(await CMLicense.isAllowed(code))) throw new Error('این کد ملی مجوز استفاده از برنامه را ندارد. برای تهیه مجوز با پشتیبانی تماس بگیرید.');
+        var demoUrl = (new URLSearchParams(location.search).get('demo') === '1'), allowed = false;
+        try { allowed = await CMLicense.isAllowed(code); } catch(e){ if(!demoUrl) throw e; }
+        if(!allowed && !demoUrl) throw new Error('این کد ملی مجوز استفاده از برنامه را ندارد. برای تهیه مجوز با پشتیبانی تماس بگیرید.');
         if((pw||'').length<6) throw new Error('رمز عبور باید حداقل ۶ کاراکتر باشد.');
         var d=db();
         if(d.users.some(function(u){return u.code===code;})) throw new Error('برای این کد ملی قبلاً حساب ساخته شده است. وارد شوید.');
@@ -2370,6 +2373,7 @@ var CMAuth = (function(){
         var hash = await derive(pw, salt, alg);
         d.users.push({code:code, name:(name||'').trim(), alg:alg, salt:b64(salt), hash:hash, created:Date.now(), legacy: d.users.length===0 && hasLegacyData()});
         saveDb(d);
+        if(!allowed) real.setItem('cmclic_demo_'+code, '1');   // حساب آزمایشی: تا فعال‌سازی، در هر آدرسی آزمایشی می‌ماند
         return code;
     }
     function failState(){ try { return JSON.parse(real.getItem(K_FAIL)||'{}'); } catch(e){ return {}; } }
@@ -3069,6 +3073,22 @@ var CMPDF = (function(){
     var localStorage = CMAuth.store();
 
     /* ═══════════════════════════════════════════════════
+       🎁 حالت آزمایشی
+       حساب آزمایشی = حسابی که با آدرس ?demo=1 و بدون مجوز ساخته شده (پرچم cmclic_demo_<کد ملی>).
+       تا وقتی با کد ملیِ مجاز «فعال‌سازی نسخهٔ کامل» نشود (پرچم cmclic_act_<کد ملی>)، حتی بدون ?demo=1 هم آزمایشی می‌ماند.
+       ═══════════════════════════════════════════════════ */
+    var DEMO_PHONE = '09147568019';
+    var DEMO_TG_ID = '@masoomi68';
+    var DEMO_MSG = '\n\n⚠️ این نسخهٔ آزمایشی است.\n\nبرای دریافت نسخهٔ کامل و فعال‌سازی:\n📞 ' + DEMO_PHONE + '\n💬 تلگرام/شاد/ایتا: ' + DEMO_TG_ID;
+    var DEMO_ALLOWED_PAGES = ['home', 'classes', 'students', 'grades'];
+    var DEMO_MODE = (function() {
+        var u = CMAuth.user();
+        return !!(u && CMStore.getItem('cmclic_demo_' + u.code) === '1' && CMStore.getItem('cmclic_act_' + u.code) !== '1');
+    })();
+    window.DEMO_MODE = DEMO_MODE;
+    if (DEMO_MODE) document.body.classList.add('demo-mode');
+
+    /* ═══════════════════════════════════════════════════
        🧰 توابع کمکی
        ═══════════════════════════════════════════════════ */
 
@@ -3318,6 +3338,10 @@ var CMPDF = (function(){
 
     var currentPageName = 'home';
     function showPage(pageName, fromPop) {
+        if (DEMO_MODE && DEMO_ALLOWED_PAGES.indexOf(pageName) < 0) {
+            if (!fromPop) { alert('🔒 این بخش در نسخهٔ آزمایشی غیرفعال است.' + DEMO_MSG); return; }
+            pageName = 'home';
+        }
         navItems.forEach(function(item) { item.classList.remove('active'); });
         pages.forEach(function(page) { page.classList.remove('active'); });
 
@@ -3374,6 +3398,14 @@ var CMPDF = (function(){
         item.addEventListener('click', function() {
             showPage(item.getAttribute('data-page'));
         });
+        if (DEMO_MODE && DEMO_ALLOWED_PAGES.indexOf(item.getAttribute('data-page')) < 0) {
+            item.style.opacity = '0.55';
+            item.style.cursor = 'not-allowed';
+            var lock = document.createElement('span');
+            lock.textContent = '🔒';
+            lock.style.cssText = 'margin-right:auto;font-size:13px;';
+            item.appendChild(lock);
+        }
     });
 
     document.getElementById('btnMobileMenu').addEventListener('click', function() {
@@ -3519,6 +3551,11 @@ var CMPDF = (function(){
         var grade = document.getElementById('inputGradeName').value.trim();
 
         if (!name) { alert('❌ نام کلاس را وارد کنید.'); return; }
+
+        if (DEMO_MODE && editingClassIndex < 0 && appData.classes.length >= 1) {
+            alert('⚠️ در نسخهٔ آزمایشی فقط ۱ کلاس مجاز است.' + DEMO_MSG);
+            return;
+        }
 
         if (editingClassIndex >= 0) {
             appData.classes[editingClassIndex].className = name;
@@ -3765,6 +3802,10 @@ var CMPDF = (function(){
         };
 
         var cls = appData.classes[currentClassIndex];
+        if (DEMO_MODE && editingStudentIndex < 0 && cls && (cls.students || []).length >= 5) {
+            alert('⚠️ در نسخهٔ آزمایشی فقط ۵ دانش‌آموز مجاز است.' + DEMO_MSG);
+            return;
+        }
         if (editingStudentIndex >= 0) {
             data.id = cls.students[editingStudentIndex].id;
             cls.students[editingStudentIndex] = data;
@@ -4211,6 +4252,7 @@ var CMPDF = (function(){
     }
 
     document.getElementById('btnPdfImport').addEventListener('click', function() {
+        if (DEMO_MODE) { alert('🔒 این قابلیت در نسخهٔ آزمایشی غیرفعال است.' + DEMO_MSG); return; }
         if (appData.classes.length === 0) { alert('❌ ابتدا یک کلاس بسازید.'); return; }
         var sel = document.getElementById('pdfClassSelect');
         sel.innerHTML = '';
@@ -4284,6 +4326,7 @@ var CMPDF = (function(){
 
 
     document.getElementById('btnExcelImport').addEventListener('click', function() {
+        if (DEMO_MODE) { alert('🔒 این قابلیت در نسخهٔ آزمایشی غیرفعال است.' + DEMO_MSG); return; }
         if (appData.classes.length === 0) { alert('❌ ابتدا یک کلاس بسازید.'); return; }
         fillExcelClassSelect();
         document.getElementById('excelFileInput').value = '';
@@ -7837,9 +7880,67 @@ var CMPDF = (function(){
     })();
 
     /* ═══════════════════════════════════════════════════
+       🎁 حالت آزمایشی: بنر، دکمهٔ فعال‌سازی، پیام خوش‌آمد
+       ═══════════════════════════════════════════════════ */
+    (function() {
+        if (!DEMO_MODE) return;
+
+        var banner = document.createElement('div');
+        banner.id = 'demoBanner';
+        banner.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;padding:10px 14px;text-align:center;font-size:13px;font-weight:600;line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+        banner.innerHTML = '⚠️ نسخهٔ آزمایشی — محدود به ۱ کلاس و ۵ دانش‌آموز<br>' +
+            '<span style="font-size:12px;opacity:.95;">برای دریافت نسخهٔ کامل: 📞 ' + DEMO_PHONE + ' &nbsp;|&nbsp; 💬 ' + DEMO_TG_ID + '</span>';
+        var layout = document.querySelector('.layout');
+        if (layout) layout.parentNode.insertBefore(banner, layout);
+
+        ['btnExcelImport', 'btnPdfImport'].forEach(function(id) {
+            var b = document.getElementById(id);
+            if (!b) return;
+            b.style.opacity = '0.5'; b.style.cursor = 'not-allowed'; b.title = 'در نسخهٔ آزمایشی غیرفعال است';
+        });
+
+        function showActivateModal() {
+            var u = CMAuth.user();
+            var code = prompt('🔑 برای فعال‌سازی نسخهٔ کامل، کد ملی خود را وارد کنید:\n\n(همان کد ملی حساب شما که برای خرید استفاده کرده‌اید)');
+            if (!code) return;
+            code = CMAuth.toEn(code).replace(/\s+/g, '');
+            if (!/^\d{10}$/.test(code)) { alert('❌ کد ملی باید ۱۰ رقم باشد.'); return; }
+            if (!u || code !== u.code) { alert('❌ کد ملی باید همان نام کاربری حساب فعلی شما باشد.'); return; }
+            CMLicense.isAllowed(code).then(function(allowed) {
+                if (!allowed) {
+                    alert('❌ این کد ملی در لیست مجاز نیست.\n\nاگر شما خرید کرده‌اید، لطفاً با پشتیبانی تماس بگیرید:\n📞 ' + DEMO_PHONE + '\n💬 ' + DEMO_TG_ID);
+                    return;
+                }
+                CMStore.setItem('cmclic_act_' + code, '1');
+                alert('✅ نسخهٔ کامل فعال شد!\n\nاپ در حال بارگذاری مجدد است...');
+                CMStore.flush().then(function() {
+                    setTimeout(function() { location.href = location.pathname + location.hash; }, 800);
+                });
+            }).catch(function(err) {
+                alert('❌ خطا در بررسی مجوز:\n' + err.message + '\n\nلطفاً اتصال اینترنت خود را بررسی کنید.');
+            });
+        }
+        var act = document.getElementById('btnActivateFull');
+        if (act) { act.style.display = ''; act.addEventListener('click', showActivateModal); }
+
+        try { if (sessionStorage.getItem('cmdemo_welcome')) return; sessionStorage.setItem('cmdemo_welcome', '1'); } catch(e) {}
+        setTimeout(function() {
+            alert('🎁 به نسخهٔ آزمایشی کلاس‌یار خوش آمدید!\n\n' +
+                '⚠️ محدودیت‌های این نسخه:\n' +
+                '• فقط ۱ کلاس\n' +
+                '• فقط ۵ دانش‌آموز\n' +
+                '• بدون ورود از PDF و اکسل\n' +
+                '• بخش‌های حضور، رفتار، تکالیف، گزارش و تنظیمات غیرفعال\n\n' +
+                '💎 برای دریافت نسخهٔ کامل و فعال‌سازی:\n' +
+                '📞 ' + DEMO_PHONE + '\n' +
+                '💬 تلگرام/شاد/ایتا: ' + DEMO_TG_ID);
+        }, 1500);
+    })();
+
+    /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.3';
+    var APP_VERSION = '4.6.4';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -7970,6 +8071,14 @@ var CMPDF = (function(){
     }
     document.querySelectorAll('[data-go]').forEach(function(b) {
         b.addEventListener('click', function() { showPage(b.getAttribute('data-go')); });
+        if (DEMO_MODE && DEMO_ALLOWED_PAGES.indexOf(b.getAttribute('data-go')) < 0) {
+            b.style.position = 'relative';
+            b.style.opacity = '0.7';
+            var lock = document.createElement('span');
+            lock.textContent = '🔒';
+            lock.style.cssText = 'position:absolute;top:8px;left:8px;font-size:20px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));';
+            b.appendChild(lock);
+        }
     });
     (function() {
         var t = document.querySelector('.topbar-title');
