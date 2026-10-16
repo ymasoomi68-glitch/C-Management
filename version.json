@@ -2,7 +2,7 @@
   "app": "cmc-class-manager",
   "version": "4.6.3",
   "notes": [
-    "rebuild hashes after gitattributes"
+    "test"
   ],
   "files": [
     "index.html",
@@ -16,7 +16,7 @@
   ],
   "sha256": {
     "index.html": "549a90b0238ade5363f116126a44f64ec619b80aa09cefc2b61248100588335b",
-    "sw.js": "76f64cb1229a4a100453cedec29a6351cb19e23ece9290af18a2eb4626a080c6",
+    "sw.js": "2658dcd4074dd4aeef35086c74ebdbd4f3f7ddf73639d891b4ab419e64226a1a",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
