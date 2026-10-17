@@ -1,3 +1,13 @@
 {
-  "hashes": []
+  "v": 1,
+  "alg": "PBKDF2-SHA256",
+  "iterations": 200000,
+  "count": 5,
+  "hashes": [
+    "1046f575311e16ede62f82f357ca881f81084a739d3cca794bc5e283566ca0e2",
+    "29a18ec2ef7a1c2ff6a3f7984666c7ecf5b6d6a0d67374ef25e01410aaf517df",
+    "6edaf0d1d470b66f79e940c51db9fd645853255eaff26f4a4e045edd3a6d8874",
+    "7b3770bba444a8b04765d4a014377f04c7a01f14d1837af04be18fcf8c6ffd83",
+    "bf768b9b3e26e79e6678750ef2b8a35021ea9a3aa4f39ef711c39b868b518346"
+  ]
 }
