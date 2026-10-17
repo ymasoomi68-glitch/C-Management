@@ -92,6 +92,11 @@ window.CMStore = (function(){
 /* قفل ورود: پیش از رسم صفحه بررسی می‌شود تا محتوای برنامه برای لحظه‌ای هم دیده نشود */
 (function(){
     window.__CM_USER = null; window.__CM_LOCKED = true;
+    var __isDemoUrl = new URLSearchParams(location.search).get('demo') === '1';
+    if (__isDemoUrl) {   // [demo-upgrade] دمو بدون حساب: کاربر مجازیِ __demo__ و بدون صفحهٔ ورود
+        window.__CM_USER = '__demo__'; window.__CM_LOCKED = false; window.__CM_DEMO = true;
+        return;
+    }
     try {
         var a = JSON.parse(CMStore.getItem('cmcauth_v1') || 'null');
         var c = sessionStorage.getItem('cmcauth_sess') || CMStore.getItem('cmcauth_remember');
@@ -561,6 +566,56 @@ window.CMStore = (function(){
     body.dark .sort-select { background: #0f172a; color: var(--text); }
     body.dark table.data-table th { background: #0f172a; }
     body.dark .class-card-grade { background: #0f172a; }
+
+    /* ═══ بنر حالت دمو ═══ */
+    #demoBanner {
+        position: sticky; top: 60px; z-index: 98;
+        background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff;
+        padding: 10px 14px; box-shadow: 0 4px 12px rgba(245,158,11,0.35);
+        display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+        font-size: 13px; font-weight: 600; line-height: 1.7;
+    }
+    #demoBanner .db-text { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+    #demoBanner .db-title { font-weight: 800; font-size: 14px; }
+    #demoBanner .db-support { font-size: 11.5px; opacity: 0.95; font-weight: 500; }
+    #demoBanner .db-btn {
+        background: #fff; color: #ea580c; border: none; border-radius: 999px; padding: 10px 20px;
+        font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        transition: transform 0.15s, box-shadow 0.15s; animation: demoPulse 2.5s ease-in-out infinite; white-space: nowrap;
+    }
+    #demoBanner .db-btn:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,0.22); animation-play-state: paused; }
+    #demoBanner .db-btn:active { transform: scale(0.97); }
+    @keyframes demoPulse {
+        0%, 100% { box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        50%      { box-shadow: 0 4px 22px rgba(255,255,255,0.55), 0 0 0 4px rgba(255,255,255,0.2); }
+    }
+    /* سایدبار هم چسبان است؛ زیر بنر چسبان قرار می‌گیرد (مقدار --demo-top را جاوااسکریپت می‌گذارد) */
+    body.demo-mode .sidebar { top: var(--demo-top, 60px); height: calc(100vh - var(--demo-top, 60px)); }
+    @media (max-width: 600px) {
+        #demoBanner { top: 56px; padding: 8px 10px; gap: 8px; }
+        #demoBanner .db-btn { padding: 8px 14px; font-size: 13px; }
+        #demoBanner .db-title { font-size: 12.5px; }
+        #demoBanner .db-support { font-size: 10.5px; }
+    }
+    body.dark #demoBanner { background: linear-gradient(135deg, #b45309, #9a3412); }
+
+    /* ═══ مودال ارتقا ═══ */
+    #modalUpgrade .modal { max-width: 460px; }
+    #modalUpgrade .upg-icon { font-size: 48px; text-align: center; margin-bottom: 8px; }
+    #modalUpgrade .upg-desc { font-size: 13px; color: var(--text-muted); line-height: 1.9; margin-bottom: 16px; text-align: center; }
+    #modalUpgrade .upg-error {
+        background: rgba(239,68,68,0.1); color: #dc2626; border: 1px solid rgba(239,68,68,0.35);
+        border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.8; margin-bottom: 12px;
+        display: none; white-space: pre-line;
+    }
+    #modalUpgrade .upg-error.show { display: block; }
+    #modalUpgrade .upg-status {
+        background: rgba(37,99,235,0.08); color: var(--primary-dark); border-radius: 10px;
+        padding: 10px 12px; font-size: 13px; line-height: 1.8; margin-bottom: 12px; display: none;
+    }
+    #modalUpgrade .upg-status.show { display: block; }
+    #modalUpgrade .upg-support { font-size: 12px; text-align: center; color: var(--text-muted); margin-top: 12px; line-height: 1.9; }
 
     /* === افزودنی‌های CSS قدم‌های بعدی اینجا === */
 
@@ -1400,7 +1455,6 @@ window.CMStore = (function(){
         <select class="year-select" id="topYearSelect" title="سال تحصیلی"></select>
         <button class="btn-icon" id="btnTheme" title="حالت شب">🌙</button>
         <button class="btn-icon" id="btnSettings" title="تنظیمات">⚙️</button>
-        <button class="btn-icon btn-activate" id="btnActivateFull" title="فعال‌سازی نسخهٔ کامل" aria-label="فعال‌سازی نسخهٔ کامل" style="display:none;color:#f59e0b;">💎</button>
         <button class="btn-icon btn-logout" id="topUserBtn" title="خروج از حساب" aria-label="خروج از حساب"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
     </div>
 </header>
@@ -2026,7 +2080,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۴</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۵</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2301,6 +2355,46 @@ window.CMStore = (function(){
     </div>
 </div>
 
+<div class="modal-overlay" id="modalUpgrade">
+    <div class="modal">
+        <div class="upg-icon">💎</div>
+        <h2 class="modal-title" style="text-align:center;border:0;">ارتقا به نسخهٔ کامل</h2>
+        <p class="upg-desc">
+            برای فعال‌سازی نسخهٔ کامل، کد ملی خریداری‌شدهٔ خود و یک
+            رمز عبور دلخواه (حداقل ۶ کاراکتر) وارد کنید.
+        </p>
+
+        <div class="upg-error" id="upgError"></div>
+        <div class="upg-status" id="upgStatus"></div>
+
+        <div class="form-group">
+            <label class="form-label">کد ملی خریدار *</label>
+            <input type="text" class="form-input" id="upgCode" inputmode="numeric" maxlength="10"
+                   placeholder="۱۰ رقم" style="direction:ltr;text-align:left;">
+        </div>
+        <div class="form-group">
+            <label class="form-label">رمز عبور جدید (حداقل ۶ کاراکتر) *</label>
+            <input type="password" class="form-input" id="upgPass" placeholder="••••••"
+                   style="direction:ltr;text-align:left;" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <label class="form-label">تکرار رمز عبور *</label>
+            <input type="password" class="form-input" id="upgPass2" placeholder="••••••"
+                   style="direction:ltr;text-align:left;" autocomplete="new-password">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-outline" data-close-modal="modalUpgrade">انصراف</button>
+            <button class="btn btn-primary" id="btnDoUpgrade">💎 فعال‌سازی نسخهٔ کامل</button>
+        </div>
+
+        <p class="upg-support">
+            💬 در صورت بروز مشکل با پشتیبانی تماس بگیرید:<br>
+            📞 09147568019 &nbsp;|&nbsp; تلگرام/شاد/ایتا: @masoomi68
+        </p>
+    </div>
+</div>
+
 <!-- === MODALS-END: این خط را پاک نکن === -->
 
 <script type="text/cm-boot">
@@ -2357,7 +2451,10 @@ var CMAuth = (function(){
     function randSalt(){ var u=new Uint8Array(16); if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(u); else for(var i=0;i<16;i++) u[i]=Math.floor(Math.random()*256); return u; }
 
     function hasLegacyData(){ try { for(var i=0;i<real.length;i++){ var k=real.key(i); if(k && k.indexOf('cmc_')===0 && k!=='cmc_theme' && k!=='cmc_active_page') return true; } } catch(e){} return false; }
-    function prefixFor(u){ return u && u.legacy ? '' : 'cmcu_' + (u?u.code:'x') + '__'; }
+    function prefixFor(u){
+        if (u && u.code === '__demo__') return 'cmcu_demo__';   // [demo-upgrade]
+        return u && u.legacy ? '' : 'cmcu_' + (u?u.code:'x') + '__';
+    }
     function curUser(){ var c=window.__CM_USER; return db().users.filter(function(u){return u.code===c;})[0] || null; }
 
     async function signup(name, code, pw){
@@ -2373,7 +2470,11 @@ var CMAuth = (function(){
         var hash = await derive(pw, salt, alg);
         d.users.push({code:code, name:(name||'').trim(), alg:alg, salt:b64(salt), hash:hash, created:Date.now(), legacy: d.users.length===0 && hasLegacyData()});
         saveDb(d);
-        if(!allowed) real.setItem('cmclic_demo_'+code, '1');   // حساب آزمایشی: تا فعال‌سازی، در هر آدرسی آزمایشی می‌ماند
+        if(allowed) {   // [demo-upgrade] اگر این کد قبلاً دمو بوده و حالا مجوز دارد، پرچم دمو پاک شود
+            try { real.removeItem('cmclic_demo_' + code); } catch(e){}
+        } else {
+            real.setItem('cmclic_demo_' + code, '1');   // حساب آزمایشیِ قدیمی؛ تا فعال‌سازی، در هر آدرسی آزمایشی می‌ماند
+        }
         return code;
     }
     function failState(){ try { return JSON.parse(real.getItem(K_FAIL)||'{}'); } catch(e){ return {}; } }
@@ -2396,9 +2497,17 @@ var CMAuth = (function(){
         u2.tok = tk; saveDb(d2);
         sessionStorage.setItem(K_SESS, code + ':' + tk);
         if(remember) real.setItem(K_REM, code + ':' + tk); else real.removeItem(K_REM);
+        // [demo-upgrade] حساب دموی قدیمی که حالا در licenses.json هست: پرچم دمو پاک شود (فقط اگر مجوز واقعاً تأیید شد)
+        try {
+            if (real.getItem('cmclic_demo_' + code) === '1' && await CMLicense.isAllowed(code)) {
+                real.setItem('cmclic_act_' + code, '1');
+                real.removeItem('cmclic_demo_' + code);
+            }
+        } catch(e){}
         return code;
     }
-    function logout(){ try { var d=db(), u=curUser(); if(u){ var t=d.users.filter(function(x){return x.code===u.code;})[0]; if(t){ t.tok=''; saveDb(d); } } sessionStorage.removeItem(K_SESS); real.removeItem(K_REM); } catch(e){} location.reload(); }
+    function logout(){ if (window.__CM_DEMO === true) { location.href = location.pathname; return; }   /* [demo-upgrade] */
+        try { var d=db(), u=curUser(); if(u){ var t=d.users.filter(function(x){return x.code===u.code;})[0]; if(t){ t.tok=''; saveDb(d); } } sessionStorage.removeItem(K_SESS); real.removeItem(K_REM); } catch(e){} location.reload(); }
     async function changePassword(oldPw, newPw){
         var u=curUser(); if(!u) throw new Error('ابتدا وارد شوید.');
         if((newPw||'').length<6) throw new Error('رمز جدید باید حداقل ۶ کاراکتر باشد.');
@@ -2471,7 +2580,7 @@ var CMAuth = (function(){
 
     /* فضای ذخیره‌سازی اختصاصی هر کاربر؛ جایگزین localStorage داخل برنامه */
     function store(){
-        var pre = prefixFor(curUser());
+        var pre = (window.__CM_DEMO === true) ? 'cmcu_demo__' : prefixFor(curUser());   // [demo-upgrade] در دمو حسابی وجود ندارد
         return {
             getItem: function(k){ return real.getItem(pre+k); },
             setItem: function(k,v){ try { real.setItem(pre+k, v); } catch(e) { StorageGuard.full(); throw e; } StorageGuard.check(); },
@@ -2485,6 +2594,7 @@ var CMAuth = (function(){
     function initUI(){
         var $ = function(id){ return document.getElementById(id); };
         var root = $('authRoot'); if(!root) return;
+        if (window.__CM_DEMO === true) { root.style.display = 'none'; return; }   // [demo-upgrade] در دمو صفحهٔ ورود هرگز نمایش داده نمی‌شود
         try { var th = real.getItem('cmcauth_theme') || real.getItem('cmc_theme'); if(th==='dark' || (!th && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)) root.classList.add('auth-dark'); } catch(e){}
         var err = $('authErr');
         function showErr(m){ err.textContent=m||''; err.classList.toggle('show', !!m); }
@@ -3082,8 +3192,11 @@ var CMPDF = (function(){
     var DEMO_MSG = '\n\n⚠️ این نسخهٔ آزمایشی است.\n\nبرای دریافت نسخهٔ کامل و فعال‌سازی:\n📞 ' + DEMO_PHONE + '\n💬 تلگرام/شاد/ایتا: ' + DEMO_TG_ID;
     var DEMO_ALLOWED_PAGES = ['home', 'classes', 'students', 'grades'];
     var DEMO_MODE = (function() {
+        if (window.__CM_DEMO === true) return true;   // [demo-upgrade] دمو بدون حساب (?demo=1)
+        // سازگاری با حساب‌های دموی نسخهٔ قبلی
         var u = CMAuth.user();
-        return !!(u && CMStore.getItem('cmclic_demo_' + u.code) === '1' && CMStore.getItem('cmclic_act_' + u.code) !== '1');
+        if (!u || u.code === '__demo__') return false;
+        return !!(CMStore.getItem('cmclic_demo_' + u.code) === '1' && CMStore.getItem('cmclic_act_' + u.code) !== '1');
     })();
     window.DEMO_MODE = DEMO_MODE;
     if (DEMO_MODE) document.body.classList.add('demo-mode');
@@ -7864,7 +7977,7 @@ var CMPDF = (function(){
         }
         var tl = document.getElementById('topUserBtn');
         if (tl && u) tl.title = 'خروج از حساب' + (u.name ? ' (' + u.name + ')' : '');
-        function out() { if (confirm('از حساب خارج می‌شوید؟ (داده‌ها حفظ می‌شود)')) CMAuth.logout(); }
+        function out() { if (confirm(DEMO_MODE && window.__CM_DEMO ? 'از حالت آزمایشی خارج می‌شوید؟ (داده‌های آزمایشی حفظ می‌شود)' : 'از حساب خارج می‌شوید؟ (داده‌ها حفظ می‌شود)')) CMAuth.logout(); }   // [demo-upgrade]
         if (tl) tl.addEventListener('click', out);
         var lo = document.getElementById('btnAccLogout'); if (lo) lo.addEventListener('click', out);
         var cp = document.getElementById('btnAccChangePw');
@@ -7880,50 +7993,182 @@ var CMPDF = (function(){
     })();
 
     /* ═══════════════════════════════════════════════════
-       🎁 حالت آزمایشی: بنر، دکمهٔ فعال‌سازی، پیام خوش‌آمد
+       🎁 حالت آزمایشی: بنر، دکمهٔ ارتقا، پیام خوش‌آمد
        ═══════════════════════════════════════════════════ */
     (function() {
         if (!DEMO_MODE) return;
 
+        /* ---------- ۱. بنر دمو + دکمهٔ برجسته ---------- */
         var banner = document.createElement('div');
         banner.id = 'demoBanner';
-        banner.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;padding:10px 14px;text-align:center;font-size:13px;font-weight:600;line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,.2);';
-        banner.innerHTML = '⚠️ نسخهٔ آزمایشی — محدود به ۱ کلاس و ۵ دانش‌آموز<br>' +
-            '<span style="font-size:12px;opacity:.95;">برای دریافت نسخهٔ کامل: 📞 ' + DEMO_PHONE + ' &nbsp;|&nbsp; 💬 ' + DEMO_TG_ID + '</span>';
+        banner.innerHTML =
+            '<div class="db-text">' +
+                '<div class="db-title">⚠️ نسخهٔ آزمایشی — محدود به ۱ کلاس و ۵ دانش‌آموز</div>' +
+                '<div class="db-support">📞 ' + DEMO_PHONE + ' &nbsp;|&nbsp; 💬 ' + DEMO_TG_ID + '</div>' +
+            '</div>' +
+            '<button class="db-btn" id="btnUpgradeDemo" type="button">' +
+                '<span style="font-size:18px;">💎</span>' +
+                '<span>ارتقا به نسخهٔ کامل</span>' +
+            '</button>';
         var layout = document.querySelector('.layout');
         if (layout) layout.parentNode.insertBefore(banner, layout);
 
+        // [demo-upgrade] سایدبار هم چسبان است؛ آن را زیر بنر می‌بریم تا روی هم نیفتند
+        function fitSidebar() {
+            var tb = document.querySelector('.topbar'), top = (tb ? tb.offsetHeight : 60) + banner.offsetHeight;
+            document.documentElement.style.setProperty('--demo-top', top + 'px');
+        }
+        fitSidebar(); window.addEventListener('resize', fitSidebar);
+        if (window.matchMedia && matchMedia('(max-width: 768px)').matches === false) setTimeout(fitSidebar, 300);
+
+        /* ---------- ۲. بازکردن مودال ارتقا ---------- */
+        function openUpgradeModal() {
+            var m = document.getElementById('modalUpgrade');
+            if (!m) return;
+            document.getElementById('upgError').classList.remove('show');
+            document.getElementById('upgStatus').classList.remove('show');
+            document.getElementById('upgCode').value = '';
+            document.getElementById('upgPass').value = '';
+            document.getElementById('upgPass2').value = '';
+            document.getElementById('btnDoUpgrade').disabled = false;
+            document.getElementById('btnDoUpgrade').textContent = '💎 فعال‌سازی نسخهٔ کامل';
+            m.classList.add('open');
+            setTimeout(function() { document.getElementById('upgCode').focus(); }, 100);
+        }
+        function upgErr(msg) { var e = document.getElementById('upgError'); e.textContent = msg; e.classList.add('show'); }
+        function upgStatus(msg) { var s = document.getElementById('upgStatus'); s.textContent = msg; s.classList.add('show'); }
+        function upgClearMsgs() {
+            document.getElementById('upgError').classList.remove('show');
+            document.getElementById('upgStatus').classList.remove('show');
+        }
+
+        /* ---------- ۳. اجرای ارتقا ---------- */
+        var upgrading = false;
+        async function doUpgrade() {
+            if (upgrading) return;
+            upgClearMsgs();
+            var btn = document.getElementById('btnDoUpgrade');
+
+            var code = CMAuth.toEn(document.getElementById('upgCode').value).replace(/\s+/g, '');
+            var pass = document.getElementById('upgPass').value;
+            var pass2 = document.getElementById('upgPass2').value;
+
+            if (!CMAuth.validCode(code)) { upgErr('کد ملی وارد‌شده معتبر نیست. باید ۱۰ رقم صحیح باشد.'); return; }
+            if (!pass || pass.length < 6) { upgErr('رمز عبور باید حداقل ۶ کاراکتر باشد.'); return; }
+            if (pass !== pass2) { upgErr('تکرار رمز عبور با رمز یکی نیست.'); return; }
+
+            // بررسی نبود حساب قبلی با این کد
+            var existingUsers = [];
+            try {
+                var raw = CMStore.getItem('cmcauth_v1');
+                var db = raw ? JSON.parse(raw) : null;
+                existingUsers = (db && db.users) ? db.users : [];
+            } catch(e) {}
+            if (existingUsers.some(function(u) { return u.code === code; })) {
+                upgErr('برای این کد ملی قبلاً حساب ساخته شده است.\nلطفاً از صفحهٔ ورود عادی (بدون ?demo=1) وارد شوید.');
+                return;
+            }
+
+            upgrading = true;
+            btn.disabled = true;
+            btn.textContent = '⏳ در حال بررسی مجوز...';
+            upgStatus('اتصال به سرور برای بررسی مجوز...');
+
+            try {
+                var allowed = await CMLicense.isAllowed(code);
+                if (!allowed) {
+                    upgrading = false;   // [demo-upgrade] اجازهٔ تلاش مجدد
+                    btn.disabled = false;
+                    btn.textContent = '💎 فعال‌سازی نسخهٔ کامل';
+                    upgClearMsgs();
+                    upgErr('این کد ملی در لیست خریداران نیست.\n\n' +
+                        'در صورت خرید با پشتیبانی تماس بگیرید:\n' +
+                        '📞 ' + DEMO_PHONE + '\n' +
+                        '💬 ' + DEMO_TG_ID);
+                    return;
+                }
+
+                btn.textContent = '⏳ در حال ساخت حساب...';
+                upgStatus('مجوز تأیید شد. در حال ساخت حساب کاربری...');
+
+                // signup خودش دوباره isAllowed را صدا می‌زند (سریع و بی‌ضرر)
+                await CMAuth.signup('', code, pass);
+                await CMAuth.login(code, pass, true);
+
+                // انتقال داده‌های دمو
+                btn.textContent = '⏳ در حال انتقال داده‌ها...';
+                upgStatus('در حال انتقال داده‌های آزمایشی به حساب جدید...');
+
+                // پیشوند واقعیِ حساب تازه (اگر «legacy» بود پیشوند خالی است)
+                var USER_PRE = 'cmcu_' + code + '__';
+                try {
+                    var rec = (JSON.parse(CMStore.getItem('cmcauth_v1')).users || []).filter(function(u) { return u.code === code; })[0];
+                    if (rec && rec.legacy) USER_PRE = '';
+                } catch(e) {}
+                var DEMO_PRE = 'cmcu_demo__';
+                var allKeys = [];
+                for (var i = 0; i < CMStore.length; i++) {
+                    var k = CMStore.key(i);
+                    if (k && k.indexOf(DEMO_PRE) === 0) allKeys.push(k);
+                }
+                allKeys.forEach(function(demoKey) {
+                    var v = CMStore.getItem(demoKey);
+                    if (v !== null && v !== undefined) CMStore.setItem(USER_PRE + demoKey.substring(DEMO_PRE.length), v);
+                    CMStore.removeItem(demoKey);
+                });
+
+                CMStore.setItem('cmclic_act_' + code, '1');
+                try { CMStore.removeItem('cmclic_demo_' + code); } catch(e) {}
+                await CMStore.flush();
+
+                btn.textContent = '✅ فعال شد!';
+                upgStatus('✅ نسخهٔ کامل با موفقیت فعال شد. اپ در حال بازشدن مجدد...');
+                setTimeout(function() { location.href = location.pathname + location.hash; }, 900);
+
+            } catch (err) {
+                upgrading = false;
+                btn.disabled = false;
+                btn.textContent = '💎 فعال‌سازی نسخهٔ کامل';
+                upgClearMsgs();
+                var msg = (err && err.message) ? err.message : 'خطای نامشخص';
+                if (/fetch|network|Failed/i.test(msg)) msg = 'اتصال به اینترنت برقرار نشد. اتصال خود را بررسی کنید و دوباره تلاش کنید.';
+                upgErr('❌ ' + msg);
+            }
+        }
+
+        /* ---------- ۴. وصل کردن رویدادها ---------- */
+        document.addEventListener('click', function(e) {
+            var t = e.target;
+            if (!t) return;
+            if (t.closest && t.closest('#btnUpgradeDemo')) { openUpgradeModal(); return; }
+            if (t.id === 'btnDoUpgrade') { doUpgrade(); return; }
+        });
+        ['upgCode', 'upgPass', 'upgPass2'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); doUpgrade(); }
+            });
+        });
+        var upgCodeEl = document.getElementById('upgCode');
+        if (upgCodeEl) upgCodeEl.addEventListener('input', function() {
+            var v = CMAuth.toEn(this.value).replace(/\D/g, '').slice(0, 10);
+            if (v !== this.value) this.value = v;
+        });
+
+        /* ---------- ۵. غیرفعال کردن ورود از PDF/Excel در دمو ---------- */
         ['btnExcelImport', 'btnPdfImport'].forEach(function(id) {
             var b = document.getElementById(id);
             if (!b) return;
-            b.style.opacity = '0.5'; b.style.cursor = 'not-allowed'; b.title = 'در نسخهٔ آزمایشی غیرفعال است';
+            b.style.opacity = '0.5';
+            b.style.cursor = 'not-allowed';
+            b.title = 'در نسخهٔ آزمایشی غیرفعال است';
         });
 
-        function showActivateModal() {
-            var u = CMAuth.user();
-            var code = prompt('🔑 برای فعال‌سازی نسخهٔ کامل، کد ملی خود را وارد کنید:\n\n(همان کد ملی حساب شما که برای خرید استفاده کرده‌اید)');
-            if (!code) return;
-            code = CMAuth.toEn(code).replace(/\s+/g, '');
-            if (!/^\d{10}$/.test(code)) { alert('❌ کد ملی باید ۱۰ رقم باشد.'); return; }
-            if (!u || code !== u.code) { alert('❌ کد ملی باید همان نام کاربری حساب فعلی شما باشد.'); return; }
-            CMLicense.isAllowed(code).then(function(allowed) {
-                if (!allowed) {
-                    alert('❌ این کد ملی در لیست مجاز نیست.\n\nاگر شما خرید کرده‌اید، لطفاً با پشتیبانی تماس بگیرید:\n📞 ' + DEMO_PHONE + '\n💬 ' + DEMO_TG_ID);
-                    return;
-                }
-                CMStore.setItem('cmclic_act_' + code, '1');
-                alert('✅ نسخهٔ کامل فعال شد!\n\nاپ در حال بارگذاری مجدد است...');
-                CMStore.flush().then(function() {
-                    setTimeout(function() { location.href = location.pathname + location.hash; }, 800);
-                });
-            }).catch(function(err) {
-                alert('❌ خطا در بررسی مجوز:\n' + err.message + '\n\nلطفاً اتصال اینترنت خود را بررسی کنید.');
-            });
-        }
-        var act = document.getElementById('btnActivateFull');
-        if (act) { act.style.display = ''; act.addEventListener('click', showActivateModal); }
-
-        try { if (sessionStorage.getItem('cmdemo_welcome')) return; sessionStorage.setItem('cmdemo_welcome', '1'); } catch(e) {}
+        /* ---------- ۶. پیام خوش‌آمد (یک‌بار در هر session) ---------- */
+        try {
+            if (sessionStorage.getItem('cmdemo_welcome_v2')) return;
+            sessionStorage.setItem('cmdemo_welcome_v2', '1');
+        } catch(e) {}
         setTimeout(function() {
             alert('🎁 به نسخهٔ آزمایشی کلاس‌یار خوش آمدید!\n\n' +
                 '⚠️ محدودیت‌های این نسخه:\n' +
@@ -7931,16 +8176,16 @@ var CMPDF = (function(){
                 '• فقط ۵ دانش‌آموز\n' +
                 '• بدون ورود از PDF و اکسل\n' +
                 '• بخش‌های حضور، رفتار، تکالیف، گزارش و تنظیمات غیرفعال\n\n' +
-                '💎 برای دریافت نسخهٔ کامل و فعال‌سازی:\n' +
+                '💎 برای دریافت نسخهٔ کامل، روی دکمهٔ «ارتقا به نسخهٔ کامل» در بالای صفحه بزنید.\n\n' +
                 '📞 ' + DEMO_PHONE + '\n' +
                 '💬 تلگرام/شاد/ایتا: ' + DEMO_TG_ID);
-        }, 1500);
+        }, 1200);
     })();
 
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.4';
+    var APP_VERSION = '4.6.5';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 

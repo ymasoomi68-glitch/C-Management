@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.4",
+  "version": "4.6.5",
   "notes": [
-    "Add demo mode with upgrade button"
+    "Fix demo upgrade flow"
   ],
   "files": [
     "index.html",
@@ -15,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "f4523c2489a281788178460b754a3cf2a46eca2889a76b38569fad23d03bfded",
-    "sw.js": "d009e5270001b77c4c1d1f205cb3699fff9ca4d91c53ba9e07fe12e8f9ba048e",
+    "index.html": "82850fedc8db200122897e8c8841638e5e4c6b0d1fb32cf15fdf52176d8b23be",
+    "sw.js": "ace84079b243756b32a58dadbcdffbb88ef081d85268c759a6b23edd62cbfa90",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
