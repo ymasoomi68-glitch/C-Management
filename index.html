@@ -270,6 +270,27 @@ window.CMStore = (function(){
 
     .class-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 
+    /* نوار تاریخ حضور و غیاب: روز قبل (راست) — تاریخ (وسط) — روز بعد (چپ) */
+    .att-datebar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+    .att-datecenter { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .att-datebox {
+        background: var(--card); border: 2px solid var(--primary); border-radius: 16px;
+        padding: 8px 22px 10px; text-align: center; min-width: 190px;
+        box-shadow: 0 4px 14px rgba(37,99,235,0.15);
+    }
+    .att-dateinput {
+        display: block; width: 100%; border: none; background: transparent; color: var(--text);
+        font-family: inherit; font-size: 20px; font-weight: 800; text-align: center; outline: none; cursor: pointer; padding: 2px 0;
+    }
+    .att-weekday { font-size: 13px; font-weight: 600; color: var(--primary); min-height: 20px; }
+    .att-nav { white-space: nowrap; }
+    @media (max-width: 520px) {
+        .att-datebar { gap: 6px; }
+        .att-datebox { min-width: 0; padding: 8px 10px 10px; }
+        .att-dateinput { font-size: 17px; }
+        .att-nav { padding: 8px 8px; font-size: 12px; }
+    }
+
     .mobile-menu-btn { display: none; background: none; border: none; font-size: 24px; cursor: pointer; padding: 6px; }
     @media (max-width: 768px) {
         :root { --sidebar-width: 220px; }
@@ -477,20 +498,22 @@ window.CMStore = (function(){
     /* ═══════════════════════════════════════════════════
        🏷️ انتخاب درس (ساده و فشرده)
        ═══════════════════════════════════════════════════ */
-    #subjectsList { display: flex !important; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    #subjectsList { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 4px; }
     .subject-chip {
-        position: relative; display: inline-flex; align-items: center; gap: 6px;
-        padding: 8px 14px; background: var(--card); color: var(--text);
-        border: 2px solid var(--border); border-radius: 999px;
-        font-size: 14px; font-weight: 600; cursor: pointer; user-select: none;
-        transition: all 0.15s; min-height: 40px;
+        position: relative; display: flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 12px 10px; background: var(--card); color: var(--text);
+        border: 2px solid var(--border); border-radius: 14px;
+        font-size: 14px; font-weight: 700; cursor: pointer; user-select: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        transition: all 0.15s; min-height: 52px; text-align: center;
     }
-    .subject-chip:hover { border-color: var(--primary); }
-    .subject-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
-    .subject-chip .chip-icon { font-size: 16px; }
-    .subject-chip .chip-name { white-space: nowrap; }
+    .subject-chip:hover { border-color: var(--primary); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37,99,235,0.15); }
+    .subject-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+    .subject-chip .chip-icon { font-size: 20px; }
+    .subject-chip .chip-name { white-space: normal; word-break: break-word; line-height: 1.5; }
     .subject-chip .remove {
-        width: 18px; height: 18px; border-radius: 50%; display: none;
+        position: absolute; top: 5px; inset-inline-start: 5px;
+        width: 20px; height: 20px; border-radius: 50%; display: none;
         align-items: center; justify-content: center; font-size: 11px;
         background: rgba(255,255,255,0.3); cursor: pointer;
     }
@@ -600,23 +623,6 @@ window.CMStore = (function(){
     }
     body.dark #demoBanner { background: linear-gradient(135deg, #b45309, #9a3412); }
 
-    /* ═══ مودال ارتقا ═══ */
-    #modalUpgrade .modal { max-width: 460px; }
-    #modalUpgrade .upg-icon { font-size: 48px; text-align: center; margin-bottom: 8px; }
-    #modalUpgrade .upg-desc { font-size: 13px; color: var(--text-muted); line-height: 1.9; margin-bottom: 16px; text-align: center; }
-    #modalUpgrade .upg-error {
-        background: rgba(239,68,68,0.1); color: #dc2626; border: 1px solid rgba(239,68,68,0.35);
-        border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.8; margin-bottom: 12px;
-        display: none; white-space: pre-line;
-    }
-    #modalUpgrade .upg-error.show { display: block; }
-    #modalUpgrade .upg-status {
-        background: rgba(37,99,235,0.08); color: var(--primary-dark); border-radius: 10px;
-        padding: 10px 12px; font-size: 13px; line-height: 1.8; margin-bottom: 12px; display: none;
-    }
-    #modalUpgrade .upg-status.show { display: block; }
-    #modalUpgrade .upg-support { font-size: 12px; text-align: center; color: var(--text-muted); margin-top: 12px; line-height: 1.9; }
-
     /* === افزودنی‌های CSS قدم‌های بعدی اینجا === */
 
     /* ═══════════════════════════════════════════════════
@@ -713,8 +719,8 @@ window.CMStore = (function(){
     }
     .quick-reason .qr-x:hover { background: #ef4444; color: #fff; }
     .quick-reasons-label { font-size: 11px; color: var(--text-muted); width: 100%; margin-top: 2px; }
-    .grade-note { margin-bottom: 10px; }
-    .grade-note .form-input { width: 100%; }
+    .grade-note { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .grade-note .gn-text { flex: 1; min-width: 160px; background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 8px 12px; font-size: 13px; line-height: 1.8; }
     .abs-choice { display: flex; gap: 10px; margin: 14px 0 6px; }
     .abs-choice .btn { flex: 1; padding: 14px 8px; font-size: 15px; font-weight: 700; }
     .il { display: flex; gap: 28px; flex-wrap: nowrap; }
@@ -1419,6 +1425,7 @@ window.CMStore = (function(){
                     <div class="auth-in"><input id="suPass2" type="password" class="ltr" autocomplete="new-password" placeholder="••••••"><button type="button" class="ico" data-eye="suPass2" aria-label="نمایش رمز">👁️</button></div>
                     <div class="auth-hint" id="suPass2Hint"></div></div>
                 <button class="auth-go" type="submit" id="btnSignup">ایجاد حساب و ورود</button>
+                <div id="demoBackRow" style="display:none;text-align:center;margin-top:12px;"><button type="button" class="auth-link" id="lnkDemoBack">↩ بازگشت به نسخهٔ آزمایشی</button></div>
             </form>
 
             <div class="auth-pane" id="paneForgot">
@@ -1634,11 +1641,18 @@ window.CMStore = (function(){
                 <select class="form-select" id="attClassSelect" style="max-width:200px;">
                     <option value="">— انتخاب کنید —</option>
                 </select>
-                <label class="form-label" style="margin:0;">تاریخ:</label>
-                <input type="text" class="form-input" id="attDate" style="max-width:140px;" placeholder="انتخاب تاریخ 📅">
-                <button class="btn btn-outline btn-sm" id="btnAttToday">📅 امروز</button>
-                <button class="btn btn-outline btn-sm" id="btnAttPrev">◀ روز قبل</button>
-                <button class="btn btn-outline btn-sm" id="btnAttNext">روز بعد ▶</button>
+            </div>
+
+            <div class="att-datebar">
+                <button class="btn btn-outline att-nav" id="btnAttPrev">▶ روز قبل</button>
+                <div class="att-datecenter">
+                    <div class="att-datebox">
+                        <input type="text" class="att-dateinput" id="attDate" placeholder="انتخاب تاریخ 📅" aria-label="تاریخ">
+                        <div class="att-weekday" id="attWeekday"></div>
+                    </div>
+                    <button class="btn btn-outline btn-sm att-today" id="btnAttToday" style="visibility:hidden;">📅 امروز</button>
+                </div>
+                <button class="btn btn-outline att-nav" id="btnAttNext">روز بعد ◀</button>
             </div>
 
             <div class="dashboard" id="attDashboard" style="display:none;">
@@ -2080,7 +2094,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۵</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۶</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2231,6 +2245,22 @@ window.CMStore = (function(){
     </div>
 </div>
 
+<!-- مودال توضیح ثبت نمرات -->
+<div class="modal-overlay" id="modalGradeNote">
+    <div class="modal">
+        <h2 class="modal-title">📝 توضیح این ثبت</h2>
+        <div class="grade-context" id="gradeNoteSubject" style="margin-bottom:12px;"></div>
+        <div class="form-group">
+            <label class="form-label">توضیح (اختیاری) — مثلاً: ارزشیابی مهر ماه</label>
+            <textarea class="form-input" id="gradeNoteText" rows="3" maxlength="200" placeholder="توضیح لازم را بنویسید..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" data-close-modal="modalGradeNote">انصراف</button>
+            <button class="btn btn-primary" id="btnConfirmGradeNote">✅ تأیید</button>
+        </div>
+    </div>
+</div>
+
 <!-- مودال گزارش ماهانه -->
 <div class="modal-overlay" id="modalMonthlyReport">
     <div class="modal" style="max-width:650px;">
@@ -2355,46 +2385,6 @@ window.CMStore = (function(){
     </div>
 </div>
 
-<div class="modal-overlay" id="modalUpgrade">
-    <div class="modal">
-        <div class="upg-icon">💎</div>
-        <h2 class="modal-title" style="text-align:center;border:0;">ارتقا به نسخهٔ کامل</h2>
-        <p class="upg-desc">
-            برای فعال‌سازی نسخهٔ کامل، کد ملی خریداری‌شدهٔ خود و یک
-            رمز عبور دلخواه (حداقل ۶ کاراکتر) وارد کنید.
-        </p>
-
-        <div class="upg-error" id="upgError"></div>
-        <div class="upg-status" id="upgStatus"></div>
-
-        <div class="form-group">
-            <label class="form-label">کد ملی خریدار *</label>
-            <input type="text" class="form-input" id="upgCode" inputmode="numeric" maxlength="10"
-                   placeholder="۱۰ رقم" style="direction:ltr;text-align:left;">
-        </div>
-        <div class="form-group">
-            <label class="form-label">رمز عبور جدید (حداقل ۶ کاراکتر) *</label>
-            <input type="password" class="form-input" id="upgPass" placeholder="••••••"
-                   style="direction:ltr;text-align:left;" autocomplete="new-password">
-        </div>
-        <div class="form-group">
-            <label class="form-label">تکرار رمز عبور *</label>
-            <input type="password" class="form-input" id="upgPass2" placeholder="••••••"
-                   style="direction:ltr;text-align:left;" autocomplete="new-password">
-        </div>
-
-        <div class="modal-actions">
-            <button class="btn btn-outline" data-close-modal="modalUpgrade">انصراف</button>
-            <button class="btn btn-primary" id="btnDoUpgrade">💎 فعال‌سازی نسخهٔ کامل</button>
-        </div>
-
-        <p class="upg-support">
-            💬 در صورت بروز مشکل با پشتیبانی تماس بگیرید:<br>
-            📞 09147568019 &nbsp;|&nbsp; تلگرام/شاد/ایتا: @masoomi68
-        </p>
-    </div>
-</div>
-
 <!-- === MODALS-END: این خط را پاک نکن === -->
 
 <script type="text/cm-boot">
@@ -2405,6 +2395,9 @@ var CMAuth = (function(){
     var enc = new TextEncoder();
 
     function toEn(s){ return String(s||'').replace(/[۰-۹]/g,function(c){return c.charCodeAt(0)-0x06F0;}).replace(/[٠-٩]/g,function(c){return c.charCodeAt(0)-0x0660;}); }
+    // رمز عبور نباید حرف/عدد/نشانهٔ فارسی-عربی (و نیم‌فاصله) داشته باشد
+    var PW_FA_MSG = 'رمز عبور نباید شامل حروف یا اعداد فارسی باشد؛ با کیبورد انگلیسی بنویسید.';
+    function hasPersianChars(s){ return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\u200C\u200D]/.test(s || ''); }
     function validCode(c){
         c = toEn(c).trim();
         if(!/^\d{10}$/.test(c) || /^(\d)\1{9}$/.test(c)) return false;
@@ -2460,10 +2453,11 @@ var CMAuth = (function(){
     async function signup(name, code, pw){
         code = toEn(code).trim();
         if(!validCode(code)) throw new Error('کد ملی وارد شده معتبر نیست.');
-        var demoUrl = (new URLSearchParams(location.search).get('demo') === '1'), allowed = false;
+        var demoUrl = (new URLSearchParams(location.search).get('demo') === '1') && window.__CM_DEMO !== true, allowed = false;   // در دمو، ساخت حساب فقط برای خریداران مجاز است
         try { allowed = await CMLicense.isAllowed(code); } catch(e){ if(!demoUrl) throw e; }
         if(!allowed && !demoUrl) throw new Error('این کد ملی مجوز استفاده از برنامه را ندارد. برای تهیه مجوز با پشتیبانی تماس بگیرید.');
         if((pw||'').length<6) throw new Error('رمز عبور باید حداقل ۶ کاراکتر باشد.');
+        if(hasPersianChars(pw)) throw new Error(PW_FA_MSG);
         var d=db();
         if(d.users.some(function(u){return u.code===code;})) throw new Error('برای این کد ملی قبلاً حساب ساخته شده است. وارد شوید.');
         var alg = hasSubtle() ? 'pbkdf2' : 'sha256js', salt = randSalt();
@@ -2591,10 +2585,25 @@ var CMAuth = (function(){
     }
 
     /* ---- رابط کاربری صفحهٔ ورود ---- */
+    // انتقال داده‌های دمو (cmcu_demo__*) به حساب تازهٔ خریدار و پاک‌کردن کلیدهای دمو
+    async function migrateDemo(code){
+        var rec = db().users.filter(function(u){ return u.code===code; })[0];
+        var USER_PRE = prefixFor(rec), DEMO_PRE = 'cmcu_demo__', keys = [], i, k;
+        for(i=0;i<real.length;i++){ k=real.key(i); if(k && k.indexOf(DEMO_PRE)===0) keys.push(k); }
+        keys.forEach(function(dk){
+            var v = real.getItem(dk), nk = USER_PRE + dk.substring(DEMO_PRE.length);
+            // حساب «legacy» (پیشوند خالی) داده‌های قبلی دارد؛ رویشان نوشته نمی‌شود
+            if(v!==null && v!==undefined && !(USER_PRE==='' && real.getItem(nk)!==null)) real.setItem(nk, v);
+            real.removeItem(dk);
+        });
+        real.setItem('cmclic_act_'+code, '1');
+        try { real.removeItem('cmclic_demo_'+code); } catch(e){}
+        if(real.flush) await real.flush();
+    }
+
     function initUI(){
         var $ = function(id){ return document.getElementById(id); };
         var root = $('authRoot'); if(!root) return;
-        if (window.__CM_DEMO === true) { root.style.display = 'none'; return; }   // [demo-upgrade] در دمو صفحهٔ ورود هرگز نمایش داده نمی‌شود
         try { var th = real.getItem('cmcauth_theme') || real.getItem('cmc_theme'); if(th==='dark' || (!th && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)) root.classList.add('auth-dark'); } catch(e){}
         var err = $('authErr');
         function showErr(m){ err.textContent=m||''; err.classList.toggle('show', !!m); }
@@ -2606,7 +2615,22 @@ var CMAuth = (function(){
             tabs.querySelectorAll('.auth-tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===name); });
             setTimeout(function(){ var f = name==='login'?$('lgCode'):name==='signup'?$('suName'):$('fgCode'); if(f && window.innerWidth>860) f.focus(); },30);
         }
-        tab(db().users.length ? 'login' : 'signup');
+        var IS_DEMO = (window.__CM_DEMO === true);
+        tab(IS_DEMO || !db().users.length ? 'signup' : 'login');
+        if(IS_DEMO){
+            // دمو: همان صفحهٔ ایجاد حساب، فقط با دکمهٔ «ارتقا» باز می‌شود (بدون تب ورود)
+            $('authTabs').style.display = 'none';
+            $('paneSignup').querySelector('.auth-title').textContent = 'ارتقا به نسخهٔ کامل 💎';
+            $('paneSignup').querySelector('.auth-sub').textContent = 'کد ملی خریداری‌شده و یک رمز عبور بنویسید؛ داده‌های آزمایشی شما به حساب جدید منتقل می‌شود.';
+            $('demoBackRow').style.display = '';
+            $('lnkDemoBack').addEventListener('click', function(){ root.style.display = ''; });
+            window.__cmOpenUpgrade = function(){
+                ['suName','suCode','suPass','suPass2'].forEach(function(id){ $(id).value=''; });
+                checkCode(); checkPass(); checkPass2(); showErr('');
+                root.style.display = 'flex';
+                setTimeout(function(){ if(window.innerWidth>860) $('suName').focus(); },30);
+            };
+        }
         root.querySelectorAll('.auth-tab').forEach(function(b){ b.addEventListener('click', function(){ tab(b.getAttribute('data-tab')); }); });
         $('lnkForgot').addEventListener('click', function(){ tab('forgot'); });
         $('lnkBack').addEventListener('click', function(){ tab('login'); });
@@ -2622,6 +2646,7 @@ var CMAuth = (function(){
         function checkPass(){ var p=$('suPass').value, h=$('suPassHint'), bars=$('suMeter').children, s=p?strength(p):0, cols=['#ef4444','#f59e0b','#84cc16','#10b981'];
             for(var i=0;i<4;i++) bars[i].style.background = i<s ? cols[s-1] : '';
             if(!p){ h.textContent=''; h.className='auth-hint'; return false; }
+            if(hasPersianChars(p)){ h.textContent=PW_FA_MSG; h.className='auth-hint bad'; return false; }
             if(p.length<6){ h.textContent='رمز کوتاه است ('+p.length+' از حداقل ۶ کاراکتر)'; h.className='auth-hint bad'; return false; }
             h.textContent = ['','ضعیف — با عدد و حرف ترکیب کنید','متوسط','خوب','قوی'][s]; h.className='auth-hint ok'; return true; }
         function checkPass2(){ var a=$('suPass').value, b=$('suPass2').value, h=$('suPass2Hint'); if(!b){ h.textContent=''; h.className='auth-hint'; return false; }
@@ -2640,11 +2665,14 @@ var CMAuth = (function(){
         $('paneSignup').addEventListener('submit', function(e){
             e.preventDefault(); showErr('');
             if(!checkCode()){ showErr('کد ملی معتبر ۱۰ رقمی وارد کنید.'); return; }
-            if(!checkPass()){ showErr('رمز عبور باید حداقل ۶ کاراکتر باشد.'); return; }
+            if(!checkPass()){ showErr(hasPersianChars($('suPass').value) ? PW_FA_MSG : 'رمز عبور باید حداقل ۶ کاراکتر باشد.'); return; }
             if(!checkPass2()){ showErr('تکرار رمز با رمز عبور یکی نیست.'); return; }
             var btn=$('btnSignup'); busy(btn,true,'در حال ساخت حساب...');
             signup($('suName').value, $('suCode').value, $('suPass').value).then(function(code){ return login(code, $('suPass').value, true); })
-              .then(function(){ location.reload(); }, function(ex){ busy(btn,false); showErr(ex.message); });
+              .then(function(code){
+                  if(IS_DEMO){ return migrateDemo(code).then(function(){ location.href = location.pathname + location.hash; }); }
+                  location.reload();
+              }, function(ex){ busy(btn,false); showErr(ex.message); });
         });
         $('btnForgotDel').addEventListener('click', function(){
             showErr(''); var c=$('fgCode').value;
@@ -2734,7 +2762,7 @@ var CMLicense = (function(){
     return {isAllowed:isAllowed, hashCode:hashCode, load:loadSet};
 })();
 
-if (window.__CM_LOCKED) { if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', CMAuth.initUI); else CMAuth.initUI(); }
+if (window.__CM_LOCKED || window.__CM_DEMO === true) { if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', CMAuth.initUI); else CMAuth.initUI(); }
 
 </script>
 <script type="text/cm-boot">
@@ -3481,6 +3509,7 @@ var CMPDF = (function(){
                 var adi = document.getElementById('attDate');
                 if (adi) adi.value = attCurrentDate;
             }
+            updateAttDateUI();
         }
         if (pageName === 'grades') gradePageHook();
         if (pageName === 'behavior') behaviorPageHook();
@@ -4588,7 +4617,19 @@ var CMPDF = (function(){
         saveAttendance();
     }
 
+    // نمایش روز هفته زیر تاریخ؛ دکمهٔ «امروز» فقط وقتی تاریخ انتخابی امروز نیست
+    function updateAttDateUI() {
+        var wd = document.getElementById('attWeekday'), tb = document.getElementById('btnAttToday');
+        if (wd) {
+            var d = attCurrentDate ? jalaliStrToDate(attCurrentDate) : null, t = '';
+            try { if (d) t = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d); } catch(e) {}
+            wd.textContent = t;
+        }
+        if (tb) tb.style.visibility = (attCurrentDate && attCurrentDate !== getTodayJalaliStr()) ? 'visible' : 'hidden';
+    }
+
     function renderAttendance() {
+        updateAttDateUI();
         var container = document.getElementById('attendanceContainer');
         var dash = document.getElementById('attDashboard');
         var toolbar = document.getElementById('attToolbar');
@@ -4992,6 +5033,41 @@ var CMPDF = (function(){
         return fallback[idx % fallback.length];
     }
 
+    /* ====== کادر توضیح ثبت (با کلیک روی درس) ====== */
+    var pendingGradeNote = null;   // اگر هنگام تأیید هنوز کلاس/تاریخ انتخاب نشده باشد، توضیح تا اولین نمایش کامل نگه داشته می‌شود
+    var gradeNoteSubject = '';
+    function currentGradeKey() {
+        var cs = document.getElementById('gradeClassSelect');
+        var idx = (cs && cs.value !== '') ? parseInt(cs.value) : -1;
+        if (idx < 0 || !appData.classes[idx] || !currentGradeDate) return null;
+        return getGradeKey(appData.classes[idx].className, gradeNoteSubject, currentGradeDate);
+    }
+    function openGradeNoteModal(subject) {
+        var modal = document.getElementById('modalGradeNote');
+        if (!modal) return;
+        gradeNoteSubject = subject;
+        document.getElementById('gradeNoteSubject').textContent = getSubjectIcon(subject) + ' ' + subject;
+        var key = currentGradeKey();
+        document.getElementById('gradeNoteText').value = key ? (gradeNotes[key] || '') : '';
+        modal.classList.add('open');
+        setTimeout(function() { var t = document.getElementById('gradeNoteText'); t.focus(); }, 100);
+    }
+    function confirmGradeNote() {
+        var text = document.getElementById('gradeNoteText').value.trim();
+        var key = currentGradeKey();
+        currentSubject = gradeNoteSubject;
+        if (key) {
+            if (text) gradeNotes[key] = text; else delete gradeNotes[key];
+            saveGradeNotes();
+            pendingGradeNote = null;
+        } else {
+            pendingGradeNote = { subject: gradeNoteSubject, text: text };
+        }
+        closeModal('modalGradeNote');
+        renderSubjectsList();
+        renderGrades();
+    }
+
     function renderSubjectsList() {
         var el = document.getElementById('subjectsList');
         if (!el) return;
@@ -5013,9 +5089,7 @@ var CMPDF = (function(){
         el.querySelectorAll('.subject-chip').forEach(function(chip) {
             chip.addEventListener('click', function(e) {
                 if (e.target.classList.contains('remove')) return;
-                currentSubject = chip.getAttribute('data-sub');
-                renderSubjectsList();
-                renderGrades();
+                openGradeNoteModal(chip.getAttribute('data-sub'));
             });
         });
 
@@ -5078,10 +5152,16 @@ var CMPDF = (function(){
         var key = getGradeKey(cls.className, currentSubject, date);
         var dayData = gradesData[key] || {};
 
+        if (pendingGradeNote && pendingGradeNote.subject === currentSubject) {
+            if (pendingGradeNote.text) { gradeNotes[key] = pendingGradeNote.text; saveGradeNotes(); }
+            pendingGradeNote = null;
+        }
+
         var html = '<div class="grade-context">📚 ' + escapeHtml(currentSubject) + ' &nbsp;•&nbsp; 📅 ' + escapeHtml(describeJalaliDate(date)) + '</div>';
 
-        html += '<div class="grade-note"><input type="text" class="form-input" id="gradeNoteInput" maxlength="80" ' +
-                'placeholder="توضیح این ثبت (اختیاری) — مثلاً: ارزشیابی مهر ماه" value="' + escapeHtml(gradeNotes[key] || '') + '"></div>';
+        html += '<div class="grade-note">' +
+                (gradeNotes[key] ? '<span class="gn-text">📝 ' + escapeHtml(gradeNotes[key]) + '</span>' : '') +
+                '<button type="button" class="btn btn-outline btn-sm" id="btnEditGradeNote">' + (gradeNotes[key] ? '✏️ ویرایش توضیح' : '➕ افزودن توضیح') + '</button></div>';
 
         html += '<div class="card" style="padding:0;">';
         students.forEach(function(s, i) {
@@ -5103,14 +5183,8 @@ var CMPDF = (function(){
         html += '</div>';
         container.innerHTML = html;
 
-        var noteInput = document.getElementById('gradeNoteInput');
-        if (noteInput) {
-            noteInput.addEventListener('input', function() {
-                var v = this.value.trim();
-                if (v) gradeNotes[key] = v; else delete gradeNotes[key];
-                saveGradeNotes();
-            });
-        }
+        var btnEditNote = document.getElementById('btnEditGradeNote');
+        if (btnEditNote) btnEditNote.addEventListener('click', function() { openGradeNoteModal(currentSubject); });
 
         container.querySelectorAll('.desc-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -5211,6 +5285,9 @@ var CMPDF = (function(){
         } catch(e) {}
     }
 
+    var btnConfirmGradeNote = document.getElementById('btnConfirmGradeNote');
+    if (btnConfirmGradeNote) btnConfirmGradeNote.addEventListener('click', confirmGradeNote);
+
     var btnAddSubject = document.getElementById('btnAddSubject');
     if (btnAddSubject) btnAddSubject.addEventListener('click', openSubjectModal);
 
@@ -5222,7 +5299,6 @@ var CMPDF = (function(){
             if (subjectsList.indexOf(name) !== -1) { alert('❌ این درس قبلاً اضافه شده.'); return; }
             subjectsList.push(name);
             saveSubjects();
-            currentSubject = name;
             renderSubjectsList();
             renderGrades();
             closeModal('modalSubject');
@@ -5573,7 +5649,6 @@ var CMPDF = (function(){
         refreshGradeClassDropdown();
         var gcs = document.getElementById('gradeClassSelect');
         if (gcs && gcs.value === '' && appData.classes.length === 1) gcs.value = '0';
-        if (!currentSubject && subjectsList.length > 0) currentSubject = subjectsList[0];
         renderSubjectsList();
         if (!currentGradeDate) {
             currentGradeDate = getTodayJalaliStr();
@@ -8021,141 +8096,13 @@ var CMPDF = (function(){
         fitSidebar(); window.addEventListener('resize', fitSidebar);
         if (window.matchMedia && matchMedia('(max-width: 768px)').matches === false) setTimeout(fitSidebar, 300);
 
-        /* ---------- ۲. بازکردن مودال ارتقا ---------- */
-        function openUpgradeModal() {
-            var m = document.getElementById('modalUpgrade');
-            if (!m) return;
-            document.getElementById('upgError').classList.remove('show');
-            document.getElementById('upgStatus').classList.remove('show');
-            document.getElementById('upgCode').value = '';
-            document.getElementById('upgPass').value = '';
-            document.getElementById('upgPass2').value = '';
-            document.getElementById('btnDoUpgrade').disabled = false;
-            document.getElementById('btnDoUpgrade').textContent = '💎 فعال‌سازی نسخهٔ کامل';
-            m.classList.add('open');
-            setTimeout(function() { document.getElementById('upgCode').focus(); }, 100);
-        }
-        function upgErr(msg) { var e = document.getElementById('upgError'); e.textContent = msg; e.classList.add('show'); }
-        function upgStatus(msg) { var s = document.getElementById('upgStatus'); s.textContent = msg; s.classList.add('show'); }
-        function upgClearMsgs() {
-            document.getElementById('upgError').classList.remove('show');
-            document.getElementById('upgStatus').classList.remove('show');
-        }
-
-        /* ---------- ۳. اجرای ارتقا ---------- */
-        var upgrading = false;
-        async function doUpgrade() {
-            if (upgrading) return;
-            upgClearMsgs();
-            var btn = document.getElementById('btnDoUpgrade');
-
-            var code = CMAuth.toEn(document.getElementById('upgCode').value).replace(/\s+/g, '');
-            var pass = document.getElementById('upgPass').value;
-            var pass2 = document.getElementById('upgPass2').value;
-
-            if (!CMAuth.validCode(code)) { upgErr('کد ملی وارد‌شده معتبر نیست. باید ۱۰ رقم صحیح باشد.'); return; }
-            if (!pass || pass.length < 6) { upgErr('رمز عبور باید حداقل ۶ کاراکتر باشد.'); return; }
-            if (pass !== pass2) { upgErr('تکرار رمز عبور با رمز یکی نیست.'); return; }
-
-            // بررسی نبود حساب قبلی با این کد
-            var existingUsers = [];
-            try {
-                var raw = CMStore.getItem('cmcauth_v1');
-                var db = raw ? JSON.parse(raw) : null;
-                existingUsers = (db && db.users) ? db.users : [];
-            } catch(e) {}
-            if (existingUsers.some(function(u) { return u.code === code; })) {
-                upgErr('برای این کد ملی قبلاً حساب ساخته شده است.\nلطفاً از صفحهٔ ورود عادی (بدون ?demo=1) وارد شوید.');
-                return;
-            }
-
-            upgrading = true;
-            btn.disabled = true;
-            btn.textContent = '⏳ در حال بررسی مجوز...';
-            upgStatus('اتصال به سرور برای بررسی مجوز...');
-
-            try {
-                var allowed = await CMLicense.isAllowed(code);
-                if (!allowed) {
-                    upgrading = false;   // [demo-upgrade] اجازهٔ تلاش مجدد
-                    btn.disabled = false;
-                    btn.textContent = '💎 فعال‌سازی نسخهٔ کامل';
-                    upgClearMsgs();
-                    upgErr('این کد ملی در لیست خریداران نیست.\n\n' +
-                        'در صورت خرید با پشتیبانی تماس بگیرید:\n' +
-                        '📞 ' + DEMO_PHONE + '\n' +
-                        '💬 ' + DEMO_TG_ID);
-                    return;
-                }
-
-                btn.textContent = '⏳ در حال ساخت حساب...';
-                upgStatus('مجوز تأیید شد. در حال ساخت حساب کاربری...');
-
-                // signup خودش دوباره isAllowed را صدا می‌زند (سریع و بی‌ضرر)
-                await CMAuth.signup('', code, pass);
-                await CMAuth.login(code, pass, true);
-
-                // انتقال داده‌های دمو
-                btn.textContent = '⏳ در حال انتقال داده‌ها...';
-                upgStatus('در حال انتقال داده‌های آزمایشی به حساب جدید...');
-
-                // پیشوند واقعیِ حساب تازه (اگر «legacy» بود پیشوند خالی است)
-                var USER_PRE = 'cmcu_' + code + '__';
-                try {
-                    var rec = (JSON.parse(CMStore.getItem('cmcauth_v1')).users || []).filter(function(u) { return u.code === code; })[0];
-                    if (rec && rec.legacy) USER_PRE = '';
-                } catch(e) {}
-                var DEMO_PRE = 'cmcu_demo__';
-                var allKeys = [];
-                for (var i = 0; i < CMStore.length; i++) {
-                    var k = CMStore.key(i);
-                    if (k && k.indexOf(DEMO_PRE) === 0) allKeys.push(k);
-                }
-                allKeys.forEach(function(demoKey) {
-                    var v = CMStore.getItem(demoKey);
-                    if (v !== null && v !== undefined) CMStore.setItem(USER_PRE + demoKey.substring(DEMO_PRE.length), v);
-                    CMStore.removeItem(demoKey);
-                });
-
-                CMStore.setItem('cmclic_act_' + code, '1');
-                try { CMStore.removeItem('cmclic_demo_' + code); } catch(e) {}
-                await CMStore.flush();
-
-                btn.textContent = '✅ فعال شد!';
-                upgStatus('✅ نسخهٔ کامل با موفقیت فعال شد. اپ در حال بازشدن مجدد...');
-                setTimeout(function() { location.href = location.pathname + location.hash; }, 900);
-
-            } catch (err) {
-                upgrading = false;
-                btn.disabled = false;
-                btn.textContent = '💎 فعال‌سازی نسخهٔ کامل';
-                upgClearMsgs();
-                var msg = (err && err.message) ? err.message : 'خطای نامشخص';
-                if (/fetch|network|Failed/i.test(msg)) msg = 'اتصال به اینترنت برقرار نشد. اتصال خود را بررسی کنید و دوباره تلاش کنید.';
-                upgErr('❌ ' + msg);
-            }
-        }
-
-        /* ---------- ۴. وصل کردن رویدادها ---------- */
+        /* ---------- ۲. دکمهٔ ارتقا: باز کردن همان صفحهٔ ایجاد حساب (منطق در CMAuth.initUI) ---------- */
         document.addEventListener('click', function(e) {
             var t = e.target;
-            if (!t) return;
-            if (t.closest && t.closest('#btnUpgradeDemo')) { openUpgradeModal(); return; }
-            if (t.id === 'btnDoUpgrade') { doUpgrade(); return; }
-        });
-        ['upgCode', 'upgPass', 'upgPass2'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) el.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { e.preventDefault(); doUpgrade(); }
-            });
-        });
-        var upgCodeEl = document.getElementById('upgCode');
-        if (upgCodeEl) upgCodeEl.addEventListener('input', function() {
-            var v = CMAuth.toEn(this.value).replace(/\D/g, '').slice(0, 10);
-            if (v !== this.value) this.value = v;
+            if (t && t.closest && t.closest('#btnUpgradeDemo') && window.__cmOpenUpgrade) window.__cmOpenUpgrade();
         });
 
-        /* ---------- ۵. غیرفعال کردن ورود از PDF/Excel در دمو ---------- */
+        /* ---------- ۳. غیرفعال کردن ورود از PDF/Excel در دمو ---------- */
         ['btnExcelImport', 'btnPdfImport'].forEach(function(id) {
             var b = document.getElementById(id);
             if (!b) return;
@@ -8164,7 +8111,7 @@ var CMPDF = (function(){
             b.title = 'در نسخهٔ آزمایشی غیرفعال است';
         });
 
-        /* ---------- ۶. پیام خوش‌آمد (یک‌بار در هر session) ---------- */
+        /* ---------- ۴. پیام خوش‌آمد (یک‌بار در هر session) ---------- */
         try {
             if (sessionStorage.getItem('cmdemo_welcome_v2')) return;
             sessionStorage.setItem('cmdemo_welcome_v2', '1');
@@ -8185,7 +8132,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.5';
+    var APP_VERSION = '4.6.6';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -8471,6 +8418,7 @@ var CMPDF = (function(){
     if (attDateInput) {
         attCurrentDate = getTodayJalaliStr();
         attDateInput.value = attCurrentDate;
+        updateAttDateUI();
     }
 
     renderYearSelectors();
