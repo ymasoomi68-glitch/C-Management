@@ -719,8 +719,8 @@ window.CMStore = (function(){
     }
     .quick-reason .qr-x:hover { background: #ef4444; color: #fff; }
     .quick-reasons-label { font-size: 11px; color: var(--text-muted); width: 100%; margin-top: 2px; }
-    .grade-note { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .grade-note .gn-text { flex: 1; min-width: 160px; background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 8px 12px; font-size: 13px; line-height: 1.8; }
+    .grade-note { margin-bottom: 10px; }
+    .grade-note .form-input { width: 100%; }
     .abs-choice { display: flex; gap: 10px; margin: 14px 0 6px; }
     .abs-choice .btn { flex: 1; padding: 14px 8px; font-size: 15px; font-weight: 700; }
     .il { display: flex; gap: 28px; flex-wrap: nowrap; }
@@ -2094,7 +2094,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۷</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۸</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2241,22 +2241,6 @@ window.CMStore = (function(){
         <div class="modal-actions">
             <button class="btn btn-outline" data-close-modal="modalSubject">انصراف</button>
             <button class="btn btn-primary" id="btnSaveSubject">💾 ذخیره</button>
-        </div>
-    </div>
-</div>
-
-<!-- مودال توضیح ثبت نمرات -->
-<div class="modal-overlay" id="modalGradeNote">
-    <div class="modal">
-        <h2 class="modal-title">📝 توضیح این ثبت</h2>
-        <div class="grade-context" id="gradeNoteSubject" style="margin-bottom:12px;"></div>
-        <div class="form-group">
-            <label class="form-label">توضیح (اختیاری) — مثلاً: ارزشیابی مهر ماه</label>
-            <textarea class="form-input" id="gradeNoteText" rows="3" maxlength="200" placeholder="توضیح لازم را بنویسید..."></textarea>
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-outline" data-close-modal="modalGradeNote">انصراف</button>
-            <button class="btn btn-primary" id="btnConfirmGradeNote">✅ تأیید</button>
         </div>
     </div>
 </div>
@@ -5033,40 +5017,6 @@ var CMPDF = (function(){
         return fallback[idx % fallback.length];
     }
 
-    /* ====== کادر توضیح ثبت (با کلیک روی درس) ====== */
-    var pendingGradeNote = null;   // اگر هنگام تأیید هنوز کلاس/تاریخ انتخاب نشده باشد، توضیح تا اولین نمایش کامل نگه داشته می‌شود
-    var gradeNoteSubject = '';
-    function currentGradeKey() {
-        var cs = document.getElementById('gradeClassSelect');
-        var idx = (cs && cs.value !== '') ? parseInt(cs.value) : -1;
-        if (idx < 0 || !appData.classes[idx] || !currentGradeDate) return null;
-        return getGradeKey(appData.classes[idx].className, gradeNoteSubject, currentGradeDate);
-    }
-    function openGradeNoteModal(subject) {
-        var modal = document.getElementById('modalGradeNote');
-        if (!modal) return;
-        gradeNoteSubject = subject;
-        document.getElementById('gradeNoteSubject').textContent = getSubjectIcon(subject) + ' ' + subject;
-        var key = currentGradeKey();
-        document.getElementById('gradeNoteText').value = key ? (gradeNotes[key] || '') : '';
-        modal.classList.add('open');
-        setTimeout(function() { var t = document.getElementById('gradeNoteText'); t.focus(); }, 100);
-    }
-    function confirmGradeNote() {
-    var text = document.getElementById('gradeNoteText').value.trim();
-    var key = currentGradeKey();
-    // currentSubject قبلاً هنگام کلیک روی چیپ ست شده است
-    if (key) {
-        if (text) gradeNotes[key] = text; else delete gradeNotes[key];
-        saveGradeNotes();
-        pendingGradeNote = null;
-    } else {
-        pendingGradeNote = { subject: gradeNoteSubject, text: text };
-    }
-    closeModal('modalGradeNote');
-    renderGrades();  // فقط برای به‌روزرسانی نمایش توضیح
-}
-
     function renderSubjectsList() {
         var el = document.getElementById('subjectsList');
         if (!el) return;
@@ -5086,17 +5036,13 @@ var CMPDF = (function(){
         el.innerHTML = html;
 
         el.querySelectorAll('.subject-chip').forEach(function(chip) {
-    chip.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove')) return;
-        var sub = chip.getAttribute('data-sub');
-        // ۱) اول درس رو ست کن و نمرات را نشان بده
-        currentSubject = sub;
-        renderSubjectsList();
-        renderGrades();
-        // ۲) سپس مودال توضیح را باز کن (اختیاری)
-        openGradeNoteModal(sub);
-    });
-});
+            chip.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove')) return;
+                currentSubject = chip.getAttribute('data-sub');
+                renderSubjectsList();
+                renderGrades();
+            });
+        });
 
         el.querySelectorAll('.remove').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
@@ -5157,16 +5103,10 @@ var CMPDF = (function(){
         var key = getGradeKey(cls.className, currentSubject, date);
         var dayData = gradesData[key] || {};
 
-        if (pendingGradeNote && pendingGradeNote.subject === currentSubject) {
-            if (pendingGradeNote.text) { gradeNotes[key] = pendingGradeNote.text; saveGradeNotes(); }
-            pendingGradeNote = null;
-        }
-
         var html = '<div class="grade-context">📚 ' + escapeHtml(currentSubject) + ' &nbsp;•&nbsp; 📅 ' + escapeHtml(describeJalaliDate(date)) + '</div>';
 
-        html += '<div class="grade-note">' +
-                (gradeNotes[key] ? '<span class="gn-text">📝 ' + escapeHtml(gradeNotes[key]) + '</span>' : '') +
-                '<button type="button" class="btn btn-outline btn-sm" id="btnEditGradeNote">' + (gradeNotes[key] ? '✏️ ویرایش توضیح' : '➕ افزودن توضیح') + '</button></div>';
+        html += '<div class="grade-note"><input type="text" class="form-input" id="gradeNoteInput" maxlength="80" ' +
+                'placeholder="توضیح این ثبت (اختیاری) — مثلاً: ارزشیابی مهر ماه" value="' + escapeHtml(gradeNotes[key] || '') + '"></div>';
 
         html += '<div class="card" style="padding:0;">';
         students.forEach(function(s, i) {
@@ -5188,8 +5128,14 @@ var CMPDF = (function(){
         html += '</div>';
         container.innerHTML = html;
 
-        var btnEditNote = document.getElementById('btnEditGradeNote');
-        if (btnEditNote) btnEditNote.addEventListener('click', function() { openGradeNoteModal(currentSubject); });
+        var noteInput = document.getElementById('gradeNoteInput');
+        if (noteInput) {
+            noteInput.addEventListener('input', function() {
+                var v = this.value.trim();
+                if (v) gradeNotes[key] = v; else delete gradeNotes[key];
+                saveGradeNotes();
+            });
+        }
 
         container.querySelectorAll('.desc-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -5290,9 +5236,6 @@ var CMPDF = (function(){
         } catch(e) {}
     }
 
-    var btnConfirmGradeNote = document.getElementById('btnConfirmGradeNote');
-    if (btnConfirmGradeNote) btnConfirmGradeNote.addEventListener('click', confirmGradeNote);
-
     var btnAddSubject = document.getElementById('btnAddSubject');
     if (btnAddSubject) btnAddSubject.addEventListener('click', openSubjectModal);
 
@@ -5304,6 +5247,7 @@ var CMPDF = (function(){
             if (subjectsList.indexOf(name) !== -1) { alert('❌ این درس قبلاً اضافه شده.'); return; }
             subjectsList.push(name);
             saveSubjects();
+            currentSubject = name;
             renderSubjectsList();
             renderGrades();
             closeModal('modalSubject');
@@ -5654,6 +5598,7 @@ var CMPDF = (function(){
         refreshGradeClassDropdown();
         var gcs = document.getElementById('gradeClassSelect');
         if (gcs && gcs.value === '' && appData.classes.length === 1) gcs.value = '0';
+        if (!currentSubject && subjectsList.length > 0) currentSubject = subjectsList[0];
         renderSubjectsList();
         if (!currentGradeDate) {
             currentGradeDate = getTodayJalaliStr();
@@ -8137,7 +8082,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.7';
+    var APP_VERSION = '4.6.8';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
