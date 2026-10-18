@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.6",
+  "version": "4.6.7",
   "notes": [
-    "Update demo flow"
+    "Fix grade notes display on subject click "
   ],
   "files": [
     "index.html",
@@ -15,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "2d7d968111e32b3ad5bb34dfbfb3f694c598ed128a53f50e81a9f8589e1d79cc",
-    "sw.js": "7e597204572a462c3755a87e8fce682bc4f8f36fa77236e503c05921fc3daacc",
+    "index.html": "72e5fb7bcac5146663daf236b508f0e116a5ad92426bc0e793d5eed197fa5777",
+    "sw.js": "fca0910bce58c0495dcf12458fa8dd1ad71bfb7bd7032e5c478367c8ec8c6dc8",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",

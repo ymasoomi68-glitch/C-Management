@@ -2094,7 +2094,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۶</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۷</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -5053,20 +5053,19 @@ var CMPDF = (function(){
         setTimeout(function() { var t = document.getElementById('gradeNoteText'); t.focus(); }, 100);
     }
     function confirmGradeNote() {
-        var text = document.getElementById('gradeNoteText').value.trim();
-        var key = currentGradeKey();
-        currentSubject = gradeNoteSubject;
-        if (key) {
-            if (text) gradeNotes[key] = text; else delete gradeNotes[key];
-            saveGradeNotes();
-            pendingGradeNote = null;
-        } else {
-            pendingGradeNote = { subject: gradeNoteSubject, text: text };
-        }
-        closeModal('modalGradeNote');
-        renderSubjectsList();
-        renderGrades();
+    var text = document.getElementById('gradeNoteText').value.trim();
+    var key = currentGradeKey();
+    // currentSubject قبلاً هنگام کلیک روی چیپ ست شده است
+    if (key) {
+        if (text) gradeNotes[key] = text; else delete gradeNotes[key];
+        saveGradeNotes();
+        pendingGradeNote = null;
+    } else {
+        pendingGradeNote = { subject: gradeNoteSubject, text: text };
     }
+    closeModal('modalGradeNote');
+    renderGrades();  // فقط برای به‌روزرسانی نمایش توضیح
+}
 
     function renderSubjectsList() {
         var el = document.getElementById('subjectsList');
@@ -5087,11 +5086,17 @@ var CMPDF = (function(){
         el.innerHTML = html;
 
         el.querySelectorAll('.subject-chip').forEach(function(chip) {
-            chip.addEventListener('click', function(e) {
-                if (e.target.classList.contains('remove')) return;
-                openGradeNoteModal(chip.getAttribute('data-sub'));
-            });
-        });
+    chip.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove')) return;
+        var sub = chip.getAttribute('data-sub');
+        // ۱) اول درس رو ست کن و نمرات را نشان بده
+        currentSubject = sub;
+        renderSubjectsList();
+        renderGrades();
+        // ۲) سپس مودال توضیح را باز کن (اختیاری)
+        openGradeNoteModal(sub);
+    });
+});
 
         el.querySelectorAll('.remove').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
@@ -8132,7 +8137,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.6';
+    var APP_VERSION = '4.6.7';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
