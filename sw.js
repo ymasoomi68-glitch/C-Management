@@ -16,15 +16,30 @@ var CACHE_FILES = [
 ];
 
 // ===== نصب =====
+// نسخهٔ جدید برنامه بدون اطلاع کاربر جایگزین نمی‌شود: صفحهٔ اصلی (index.html) از کشِ نسخهٔ قبلی منتقل می‌شود
+// و فقط وقتی کاربر در پنجرهٔ «نسخهٔ جدید» روی «بروزرسانی» بزند عوض می‌شود (نصب در خود برنامه انجام می‌شود).
+var PAGE_FILES = ['./', './index.html'];
 self.addEventListener('install', function(event) {
     console.log('✅ Service Worker نصب شد');
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(function(cache) {
-            return cache.addAll(CACHE_FILES);
-        }).catch(function(err) {
-            console.log('خطا در کش کردن:', err);
-        })
-    );
+    event.waitUntil((async function() {
+        var cache = await caches.open(CACHE_NAME);
+        var rest = CACHE_FILES.filter(function(f) { return PAGE_FILES.indexOf(f) < 0; });
+        await cache.addAll(rest);
+        var names = await caches.keys();
+        var prev = names.filter(function(n) { return n.indexOf(CACHE_PREFIX) === 0 && n !== CACHE_NAME; })
+            .sort(function(a, b) { return (parseInt(a.replace(/\D/g, ''), 10) || 0) - (parseInt(b.replace(/\D/g, ''), 10) || 0); }).pop();
+        var copied = 0;
+        if (prev) {
+            var pc = await caches.open(prev);
+            for (var i = 0; i < PAGE_FILES.length; i++) {
+                var r = await pc.match(PAGE_FILES[i]);
+                if (r) { await cache.put(PAGE_FILES[i], r); copied++; }
+            }
+        }
+        if (copied < PAGE_FILES.length) await cache.addAll(PAGE_FILES);   // نصب اول (یا نبودن نسخهٔ قبلی)
+    })().catch(function(err) {
+        console.log('خطا در کش کردن:', err);
+    }));
     self.skipWaiting();
 });
 
@@ -59,17 +74,19 @@ self.addEventListener('fetch', function(event) {
     // فایل نسخه همیشه از شبکه خوانده شود
     if (/\/(version|licenses)\.json$/.test(reqUrl.pathname)) return;
 
-    // صفحهٔ اصلی: اول شبکه (تا نسخهٔ کهنهٔ کش‌شده هیچ‌وقت گیر نکند)، اگر آفلاین بود کش
+    // صفحهٔ اصلی: از کش (نسخهٔ نصب‌شده)؛ نسخهٔ جدید فقط با تأیید کاربر در خود برنامه نصب می‌شود.
+    // اگر هنوز در کش نبود، از شبکه می‌آید و ذخیره می‌شود.
     if (event.request.mode === 'navigate' || /\/(index\.html)?$/.test(reqUrl.pathname)) {
         event.respondWith(
-            fetch(event.request, { cache: 'no-store' }).then(function(response) {
-                if (response && response.status === 200 && response.type !== 'opaque') {
-                    var rc = response.clone();
-                    caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, rc); });
-                }
-                return response;
-            }).catch(function() {
-                return caches.match(event.request).then(function(c) { return c || caches.match('./index.html'); });
+            caches.match(event.request, { ignoreSearch: true }).then(function(c) {
+                if (c) return c;
+                return fetch(event.request).then(function(response) {
+                    if (response && response.status === 200 && response.type !== 'opaque') {
+                        var rc = response.clone();
+                        caches.open(CACHE_NAME).then(function(cache) { cache.put('./index.html', rc); });
+                    }
+                    return response;
+                }).catch(function() { return caches.match('./index.html'); });
             })
         );
         return;

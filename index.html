@@ -388,6 +388,9 @@ window.CMStore = (function(){
         min-width: 0; overflow: hidden;
         text-overflow: ellipsis; white-space: nowrap;
     }
+    .gr-count { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 46px; padding: 3px 8px; border-radius: 10px; background: var(--primary-light); color: var(--primary-dark); line-height: 1.2; flex-shrink: 0; }
+    .gr-count b { font-size: 15px; }
+    .gr-count span { font-size: 10px; font-weight: 600; }
     .att-code { font-size: 11px; color: var(--text-muted); font-family: monospace; direction: ltr; margin-top: 2px; }
     .att-actions { display: flex; gap: 4px; flex-shrink: 0; }
     .att-btn {
@@ -622,6 +625,20 @@ window.CMStore = (function(){
         #demoBanner .db-support { font-size: 10.5px; }
     }
     body.dark #demoBanner { background: linear-gradient(135deg, #b45309, #9a3412); }
+
+    #modalUpdate .upd-notes { background: var(--bg); border-radius: 10px; padding: 10px 14px; max-height: 40vh; overflow: auto; font-size: 13px; line-height: 2; }
+    #modalUpdate .upd-notes-title { font-weight: 700; margin-bottom: 4px; }
+    #modalUpdate .upd-notes ul { margin: 0; padding: 0 18px 0 0; }
+
+    /* ═══ نمایشگر گزارش (پیش‌نمایش + چاپ) ═══ */
+    #printViewer { display: none; position: fixed; inset: 0; z-index: 2500; background: #cbd5e1; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; }
+    #printViewer.open { display: flex; }
+    #printViewer .pv-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--card); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    #printViewer .pv-title { font-weight: 800; font-size: 15px; color: var(--text); }
+    #printViewer .pv-actions { display: flex; gap: 8px; }
+    #printViewer .pv-scroll { flex: 1; overflow: auto; padding: 12px 8px 30px; -webkit-overflow-scrolling: touch; }
+    #printViewer .pv-wrap { margin: 0 auto; position: relative; }
+    #printViewer .pv-frame { position: absolute; top: 0; left: 0; border: 0; background: #fff; transform-origin: top left; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
 
     /* === افزودنی‌های CSS قدم‌های بعدی اینجا === */
 
@@ -1717,12 +1734,18 @@ window.CMStore = (function(){
                 <select class="form-select" id="gradeClassSelect" style="max-width:180px;">
                     <option value="">— انتخاب —</option>
                 </select>
-                <label class="form-label" style="margin:0;">تاریخ:</label>
-                <input type="text" class="form-input" id="gradeDate" style="max-width:140px;" placeholder="انتخاب تاریخ 📅">
-                <button class="btn btn-outline btn-sm" id="btnGradeToday">📅 امروز</button>
-                <button class="btn btn-outline btn-sm" id="btnGradePrev">◀ روز قبل</button>
-                <button class="btn btn-outline btn-sm" id="btnGradeNext">روز بعد ▶</button>
-                <span class="grade-date-info" id="gradeDateInfo"></span>
+            </div>
+
+            <div class="att-datebar">
+                <button class="btn btn-outline att-nav" id="btnGradeNext">▶ روز بعد</button>
+                <div class="att-datecenter">
+                    <div class="att-datebox">
+                        <input type="text" class="att-dateinput" id="gradeDate" placeholder="انتخاب تاریخ 📅" aria-label="تاریخ">
+                        <div class="att-weekday" id="gradeDateInfo"></div>
+                    </div>
+                    <button class="btn btn-outline btn-sm att-today" id="btnGradeToday" style="visibility:hidden;">📅 امروز</button>
+                </div>
+                <button class="btn btn-outline att-nav" id="btnGradePrev">روز قبل ◀</button>
             </div>
 
             <div class="card" style="padding:12px;">
@@ -1765,10 +1788,10 @@ window.CMStore = (function(){
                 <select class="form-select" id="behaviorClassSelect" style="max-width:200px;">
                     <option value="">— انتخاب —</option>
                 </select>
-                <label class="form-label" style="margin:0;">از ماه:</label>
-                <select class="form-select" id="behaviorFromDate" style="max-width:120px;"></select>
-                <label class="form-label" style="margin:0;">تا ماه:</label>
-                <select class="form-select" id="behaviorToDate" style="max-width:120px;"></select>
+                <label class="form-label" style="margin:0;">از تاریخ:</label>
+                <input type="text" class="form-input" id="behaviorFromDate" style="max-width:140px;" placeholder="از ابتدا 📅">
+                <label class="form-label" style="margin:0;">تا تاریخ:</label>
+                <input type="text" class="form-input" id="behaviorToDate" style="max-width:140px;" placeholder="تا انتها 📅">
                 <button class="btn btn-outline btn-sm" id="btnBehaviorResetFilter">🔄 پاک کردن فیلتر</button>
             </div>
 
@@ -1832,10 +1855,10 @@ window.CMStore = (function(){
                     <select class="form-select" id="hwSubjectFilter" style="max-width:180px;">
                         <option value="">همهٔ درس‌ها</option>
                     </select>
-                    <label class="form-label" style="margin:0;">از ماه:</label>
-                    <select class="form-select" id="hwFromDate" style="max-width:120px;"></select>
-                    <label class="form-label" style="margin:0;">تا ماه:</label>
-                    <select class="form-select" id="hwToDate" style="max-width:120px;"></select>
+                    <label class="form-label" style="margin:0;">از تاریخ:</label>
+                    <input type="text" class="form-input" id="hwFromDate" style="max-width:140px;" placeholder="از ابتدا 📅">
+                    <label class="form-label" style="margin:0;">تا تاریخ:</label>
+                    <input type="text" class="form-input" id="hwToDate" style="max-width:140px;" placeholder="تا انتها 📅">
                     <button class="btn btn-outline btn-sm" id="btnHwResetFilter">🔄 پاک کردن</button>
                     <button class="btn btn-primary btn-sm" id="btnHwClassReport">📊 گزارش تکالیف کلاس</button>
                 </div>
@@ -1903,10 +1926,10 @@ window.CMStore = (function(){
                 <select class="form-select" id="reportClassSelect" style="max-width:200px;">
                     <option value="">— انتخاب —</option>
                 </select>
-                <label class="form-label" style="margin:0;">از ماه:</label>
-                <select class="form-select" id="reportDateFrom" style="max-width:150px;"></select>
-                <label class="form-label" style="margin:0;">تا ماه:</label>
-                <select class="form-select" id="reportDateTo" style="max-width:150px;"></select>
+                <label class="form-label" style="margin:0;">از تاریخ:</label>
+                <input type="text" class="form-input" id="reportDateFrom" style="max-width:140px;" placeholder="از ابتدای سال 📅">
+                <label class="form-label" style="margin:0;">تا تاریخ:</label>
+                <input type="text" class="form-input" id="reportDateTo" style="max-width:140px;" placeholder="تا پایان سال 📅">
                 <button class="btn btn-outline btn-sm" id="btnReportReset">🔄 پاک کردن فیلتر</button>
                 <button class="btn btn-primary btn-sm" id="btnReportPrintAll">🖨️ چاپ همه کارنامه‌ها</button>
                 <button class="btn btn-success btn-sm" id="btnReportDownloadAll">⬇️ دانلود PDF کارنامه‌ها</button>
@@ -1918,6 +1941,7 @@ window.CMStore = (function(){
                 <button class="report-tab" data-tab="class-summary">📊 خلاصهٔ کلاس</button>
                 <button class="report-tab" data-tab="ranking">🏆 رتبه‌بندی</button>
                 <button class="report-tab" data-tab="compare">⚖️ مقایسه</button>
+                <button class="report-tab" data-tab="daily">📅 گزارش روزانه</button>
             </div>
 
             <div id="reportContent">
@@ -2094,7 +2118,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۸</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۹</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2245,6 +2269,22 @@ window.CMStore = (function(){
     </div>
 </div>
 
+<!-- مودال به‌روزرسانی -->
+<div class="modal-overlay" id="modalUpdate" data-noback>
+    <div class="modal" style="max-width:440px;">
+        <div style="font-size:44px;text-align:center;">🎉</div>
+        <h2 class="modal-title" style="text-align:center;border:0;">نسخهٔ جدید کلاس‌یار آماده است</h2>
+        <div id="updModalVer" style="text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:12px;"></div>
+        <div id="updModalNotes" class="upd-notes"></div>
+        <div id="updModalStatus" style="display:none;font-size:13px;margin:10px 0;line-height:1.8;"></div>
+        <div style="font-size:12px;color:var(--text-muted);margin:10px 0;">اطلاعات شما هنگام بروزرسانی حفظ می‌شود.</div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="btnUpdModalCancel">انصراف</button>
+            <button class="btn btn-primary" id="btnUpdModalInstall">⬇️ بروزرسانی</button>
+        </div>
+    </div>
+</div>
+
 <!-- مودال گزارش ماهانه -->
 <div class="modal-overlay" id="modalMonthlyReport">
     <div class="modal" style="max-width:650px;">
@@ -2270,19 +2310,19 @@ window.CMStore = (function(){
 
         <div class="form-row">
             <div class="form-group">
-                <label class="form-label">از ماه</label>
-                <select class="form-select" id="reportFromMonth"></select>
+                <label class="form-label">از تاریخ</label>
+                <input type="text" class="form-input" id="reportFromMonth" placeholder="انتخاب تاریخ 📅">
             </div>
             <div class="form-group">
-                <label class="form-label">تا ماه</label>
-                <select class="form-select" id="reportToMonth"></select>
+                <label class="form-label">تا تاریخ</label>
+                <input type="text" class="form-input" id="reportToMonth" placeholder="انتخاب تاریخ 📅">
             </div>
         </div>
         <div id="reportYearNote" style="font-size:12px;color:var(--text-muted);margin-bottom:10px;"></div>
 
         <div class="modal-actions">
             <button class="btn btn-outline" data-close-modal="modalMonthlyReport">انصراف</button>
-            <button class="btn btn-primary" id="btnDoMonthlyReport">🖨️ نمایش و چاپ</button>
+            <button class="btn btn-primary" id="btnDoMonthlyReport">📄 نمایش گزارش</button>
         </div>
     </div>
 </div>
@@ -3315,24 +3355,39 @@ var CMPDF = (function(){
         return (m >= 7 ? start : start + 1) + '/' + pad2(m);
     }
 
-    function monthRangeKeys(fromMM, toMM) {
-        var fi = fromMM ? SCHOOL_MONTHS.indexOf(pad2(fromMM)) : -1;
-        var ti = toMM ? SCHOOL_MONTHS.indexOf(pad2(toMM)) : -1;
-        if (fi >= 0 && ti >= 0 && fi > ti) { var t = fi; fi = ti; ti = t; }
-        return {
-            from: fi >= 0 ? monthKeyFor(SCHOOL_MONTHS[fi]) : '',
-            to: ti >= 0 ? monthKeyFor(SCHOOL_MONTHS[ti]) : ''
-        };
+    // بازهٔ تاریخ (از تاریخ — تا تاریخ): رشته‌های «۱۴۰۵/۰۷/۱۵»؛ خالی یعنی بدون محدودیت
+    function normRange(from, to) {
+        from = String(from || ''); to = String(to || '');
+        if (from && to && from > to) { var t = from; from = to; to = t; }
+        return { from: from, to: to };
     }
-
-    // «مهر ماه» یا «مهر تا آذر ماه» یا «کل سال تحصیلی»
-    function monthRangeText(fromKey, toKey) {
-        var fm = fromKey ? fromKey.substring(5, 7) : '';
-        var tm = toKey ? toKey.substring(5, 7) : '';
-        if (!fm && !tm) return 'کل سال تحصیلی';
-        if (fm && tm) return fm === tm ? monthName(fm) + ' ماه' : monthName(fm) + ' تا ' + monthName(tm) + ' ماه';
-        if (fm) return 'از ' + monthName(fm) + ' ماه';
-        return 'تا ' + monthName(tm) + ' ماه';
+    function dateInRange(dateStr, from, to) {
+        var d = String(dateStr || '').substring(0, 10);
+        if (!d) return false;
+        var r = normRange(from, to);
+        if (r.from && d < r.from) return false;
+        if (r.to && d > r.to) return false;
+        return true;
+    }
+    // «۱۵ مهر ۱۴۰۵»
+    function fmtFullDate(d) {
+        var p = String(d || '').split('/');
+        if (p.length < 3) return d || '';
+        return toPersianNum(parseInt(p[2], 10)) + ' ' + monthName(p[1]) + ' ' + toPersianNum(parseInt(p[0], 10));
+    }
+    // «از ۱ مهر ۱۴۰۵ تا ۳۰ مهر ۱۴۰۵» یا «کل سال تحصیلی»
+    function rangeText(from, to) {
+        var r = normRange(from, to);
+        if (!r.from && !r.to) return 'کل سال تحصیلی';
+        if (r.from && r.to) return r.from === r.to ? fmtFullDate(r.from) : 'از ' + fmtFullDate(r.from) + ' تا ' + fmtFullDate(r.to);
+        if (r.from) return 'از ' + fmtFullDate(r.from);
+        return 'تا ' + fmtFullDate(r.to);
+    }
+    // اولین و آخرین روز ماهِ mm در سال تحصیلی فعال
+    function monthFirstDay(mm) { return monthKeyFor(mm) + '/01'; }
+    function monthLastDay(mm) {
+        var k = monthKeyFor(mm);
+        return k + '/' + pad2(jalaliMonthLen(parseInt(k.substring(0, 4), 10), parseInt(mm, 10)));
     }
 
     // «۱۵ مهر»
@@ -3344,13 +3399,6 @@ var CMPDF = (function(){
 
     function yearLine() {
         return '<div style="text-align:center;font-size:10.5pt;margin:-2px 0 6px 0;">سال تحصیلی ' + yearLabel(yearsState.current) + '</div>';
-    }
-
-    function fillMonthOptions(sel, blankLabel) {
-        if (!sel) return;
-        var h = blankLabel ? '<option value="">' + blankLabel + '</option>' : '';
-        SCHOOL_MONTHS.forEach(function(mm) { h += '<option value="' + mm + '">' + monthName(mm) + '</option>'; });
-        sel.innerHTML = h;
     }
 
     // ماه پیش‌فرض: ماه جاری اگر در سال تحصیلی فعال باشد، وگرنه مهر
@@ -4107,18 +4155,53 @@ var CMPDF = (function(){
         });
     }
 
+    // نمایش گزارش در صفحهٔ برنامه (پیش‌نمایش A4) و دکمهٔ «چاپ» در نوار بالا
     function openPrintWindow(html) {
-        var iframe = document.createElement('iframe');
-        iframe.style.cssText = 'position:fixed;left:-10000px;top:0;width:3000px;height:3000px;border:0;visibility:hidden;';
-        document.body.appendChild(iframe);
+        var old = document.getElementById('printViewer');
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+        var land = /size:\s*A4\s+landscape/i.test(html);
+        var PW = land ? 1123 : 794;
+        var ov = document.createElement('div');
+        ov.id = 'printViewer';
+        ov.className = 'modal-overlay open';
+        ov.innerHTML =
+            '<div class="pv-bar"><span class="pv-title">📄 گزارش</span>' +
+            '<span class="pv-actions"><button type="button" class="btn btn-primary" id="pvPrint">🖨️ چاپ</button>' +
+            '<button type="button" class="btn btn-outline" id="pvClose">✕ بستن</button></span></div>' +
+            '<div class="pv-scroll"><div class="pv-wrap"><iframe class="pv-frame" title="گزارش"></iframe></div></div>';
+        document.body.appendChild(ov);
+        var iframe = ov.querySelector('iframe'), wrap = ov.querySelector('.pv-wrap'), scroll = ov.querySelector('.pv-scroll');
+        iframe.style.width = PW + 'px';
         var doc = iframe.contentWindow.document;
         doc.open(); doc.write(html); doc.close();
+        try {
+            var st = doc.createElement('style');
+            st.textContent = '@media screen { html { background:#fff; } body { padding: 0.7cm 0.8cm; box-sizing: border-box; } }';
+            doc.head.appendChild(st);
+        } catch(e) {}
+        function layout() {
+            var sc = Math.min(1, (scroll.clientWidth - 16) / PW);
+            if (!(sc > 0)) sc = 1;
+            var h = Math.max(doc.documentElement.scrollHeight, doc.body ? doc.body.scrollHeight : 0);
+            iframe.style.height = h + 'px';
+            iframe.style.transform = 'scale(' + sc + ')';
+            wrap.style.width = Math.round(PW * sc) + 'px';
+            wrap.style.height = Math.round(h * sc) + 'px';
+        }
         setTimeout(function() {
             try { fitDocPages(doc, html); } catch(e) { console.error(e); }
+            layout();
+        }, 350);
+        window.addEventListener('resize', layout);
+        function close() {
+            window.removeEventListener('resize', layout);
+            if (ov.parentNode) ov.parentNode.removeChild(ov);
+        }
+        ov.querySelector('#pvClose').addEventListener('click', close);
+        ov.querySelector('#pvPrint').addEventListener('click', function() {
             try { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
             catch(e) { alert('❌ خطا در چاپ: ' + e.message); }
-            setTimeout(function() { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 3000);
-        }, 600);
+        });
     }
 
     /* ═══════════════════════════════════════════════════
@@ -4804,10 +4887,10 @@ var CMPDF = (function(){
 
     document.getElementById('btnAttReport').addEventListener('click', function() { showMonthlyReport(); });
 
-    function printAttMonthly(cls, monthPrefix, days, stats) {
+    function printAttMonthly(cls, rFrom, rTo, days, stats) {
         var students = cls.students || [], n = students.length;
         var fs = n > 45 ? 8 : n > 35 ? 9 : n > 28 ? 10 : n > 20 ? 11 : 12, pad = n > 45 ? 1.5 : n > 35 ? 2.5 : n > 28 ? 3.5 : 5;
-        var html = '<html><head><meta charset="UTF-8"><title>گزارش ماهانهٔ حضور و غیاب</title><style>';
+        var html = '<html><head><meta charset="UTF-8"><title>گزارش حضور و غیاب</title><style>';
         html += '@page { size: A4 portrait; margin: 0.7cm 0.8cm 0.3cm 0.8cm; }';
         html += 'body { font-family: "Vazirmatn", "B Nazanin", "Tahoma", sans-serif; direction: rtl; margin: 0; }';
         html += '.h { text-align: center; font-weight: bold; font-size: 15pt; padding: 4px 0 8px 0; border-bottom: 1.5px solid #000; margin-bottom: 8px; }';
@@ -4817,10 +4900,10 @@ var CMPDF = (function(){
         html += 'th, td { border: 1px solid #000; text-align: center; padding: ' + pad + 'px 3px; }';
         html += 'th { background: #e8e8e8; } td.name { text-align: right; padding-right: 6px; font-weight: 600; }';
         html += '</style></head><body>';
-        html += '<div class="h">گزارش ماهانهٔ حضور و غیاب - کلاس ' + escapeHtml(cls.className) + '</div>';
+        html += '<div class="h">گزارش حضور و غیاب - کلاس ' + escapeHtml(cls.className) + '</div>';
         html += yearLine();
-        html += '<div class="sub">ماه: ' + monthName(monthPrefix.substring(5, 7)) + ' ' + toPersianNum(parseInt(monthPrefix.substring(0, 4), 10)) + ' &nbsp; | &nbsp; تعداد روزهای ثبت‌شده: ' + toPersianNum(days.length) + '</div>';
-        html += '<div class="days">روزها: ' + days.map(function(d) { return toPersianNum(parseInt(d, 10)); }).join('، ') + '</div>';
+        html += '<div class="sub">' + rangeText(rFrom, rTo) + ' &nbsp; | &nbsp; تعداد روزهای ثبت‌شده: ' + toPersianNum(days.length) + '</div>';
+        html += '<div class="days">روزها: ' + days.map(function(d) { return fmtDayMonth(d); }).join('، ') + '</div>';
         html += '<table><thead><tr><th style="width:30px;">#</th><th style="width:90px;">کد ملی</th><th>نام و نام خانوادگی</th><th>حاضر</th><th>غایب موجه</th><th>غایب غیرموجه</th><th>تأخیر</th></tr></thead><tbody>';
         students.forEach(function(s, i) {
             var st = stats[s.id] || newAttStats();
@@ -4831,11 +4914,17 @@ var CMPDF = (function(){
         openPrintWindow(html);
     }
 
-    function showMonthlyReport() {
+    function showMonthlyReport(rFrom, rTo) {
         var cls = appData.classes[attCurrentClass];
         if (!cls || !attCurrentDate) { alert('❌ ابتدا کلاس و تاریخ را انتخاب کنید.'); return; }
 
-        var monthPrefix = attCurrentDate.substring(0, 7);
+        // پیش‌فرض: از اول تا آخر ماهِ تاریخ انتخاب‌شده
+        if (!rFrom && !rTo) {
+            var ymA = attCurrentDate.substring(0, 7), mmA = parseInt(ymA.substring(5, 7), 10);
+            rFrom = ymA + '/01';
+            rTo = ymA + '/' + pad2(jalaliMonthLen(parseInt(ymA.substring(0, 4), 10), mmA));
+        }
+        var nr = normRange(rFrom, rTo); rFrom = nr.from; rTo = nr.to;
         var days = [];
         var studentStats = {};
 
@@ -4847,9 +4936,9 @@ var CMPDF = (function(){
             var parts = key.split('|');
             if (parts.length !== 2) return;
             if (parts[0] !== cls.className) return;
-            if (parts[1].indexOf(monthPrefix) !== 0) return;
+            if (!dateInRange(parts[1], rFrom, rTo)) return;
 
-            var day = parts[1].substring(8);
+            var day = parts[1];
             if (days.indexOf(day) === -1) days.push(day);
 
             var dayData = attendanceData[key];
@@ -4867,21 +4956,27 @@ var CMPDF = (function(){
         modal.innerHTML =
             '<div class="modal" style="max-width:700px;">' +
                 '<div style="display:flex;gap:8px;justify-content:flex-start;margin-bottom:12px;flex-wrap:wrap;">' +
-                    (days.length > 0 ? '<button class="btn btn-success btn-sm" id="printAttMonthly">🖨️ چاپ گزارش</button>' : '') +
+                    (days.length > 0 ? '<button class="btn btn-success btn-sm" id="printAttMonthly">📄 نمایش و چاپ</button>' : '') +
                     '<button class="btn btn-outline btn-sm" id="closeReportModal">✕ بستن</button>' +
                 '</div>' +
-                '<h2 class="modal-title">📊 گزارش ماهانه - کلاس ' + escapeHtml(cls.className) + '</h2>' +
+                '<h2 class="modal-title">📊 گزارش حضور و غیاب - کلاس ' + escapeHtml(cls.className) + '</h2>' +
+                '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">' +
+                    '<label class="form-label" style="margin:0;">از تاریخ:</label>' +
+                    '<input type="text" class="form-input" id="attRepFrom" style="max-width:140px;" value="' + rFrom + '">' +
+                    '<label class="form-label" style="margin:0;">تا تاریخ:</label>' +
+                    '<input type="text" class="form-input" id="attRepTo" style="max-width:140px;" value="' + rTo + '">' +
+                '</div>' +
                 '<div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);">' +
-                    'ماه: ' + monthName(monthPrefix.substring(5, 7)) + ' ' + toPersianNum(parseInt(monthPrefix.substring(0, 4), 10)) + ' &nbsp; | &nbsp; روزهای ثبت‌شده: ' + days.length +
+                    rangeText(rFrom, rTo) + ' &nbsp; | &nbsp; روزهای ثبت‌شده: ' + days.length +
                 '</div>' +
                 (days.length > 0 ?
                     '<div style="margin-bottom:16px;">' +
                         '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">روزهای ثبت‌شده:</div>' +
                         '<div class="report-days">' +
-                            days.map(function(d) { return '<span class="report-day">' + d + '</span>'; }).join('') +
+                            days.map(function(d) { return '<span class="report-day">' + fmtDayMonth(d) + '</span>'; }).join('') +
                         '</div>' +
                     '</div>'
-                    : '<div class="no-result">هیچ روزی در این ماه ثبت نشده</div>'
+                    : '<div class="no-result">هیچ روزی در این بازه ثبت نشده</div>'
                 ) +
                 (days.length > 0 ?
                     '<div class="table-wrap"><table class="data-table">' +
@@ -4910,7 +5005,15 @@ var CMPDF = (function(){
 
         document.body.appendChild(modal);
         var pbtn = document.getElementById('printAttMonthly');
-        if (pbtn) pbtn.addEventListener('click', function() { printAttMonthly(cls, monthPrefix, days, studentStats); });
+        if (pbtn) pbtn.addEventListener('click', function() { printAttMonthly(cls, rFrom, rTo, days, studentStats); });
+        ['attRepFrom', 'attRepTo'].forEach(function(id) {
+            attachJalaliPicker(id);
+            document.getElementById(id).addEventListener('change', function() {
+                var f = document.getElementById('attRepFrom').value, t = document.getElementById('attRepTo').value;
+                modal.remove();
+                showMonthlyReport(f, t);
+            });
+        });
         modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
         document.getElementById('closeReportModal').addEventListener('click', function() { modal.remove(); });
     }
@@ -5065,12 +5168,33 @@ var CMPDF = (function(){
         });
     }
 
+    // روز هفته زیر تاریخ؛ دکمهٔ «امروز» فقط وقتی تاریخ انتخابی امروز نیست
+    function updateGradeDateUI() {
+        var di = document.getElementById('gradeDateInfo'), tb = document.getElementById('btnGradeToday');
+        if (di) {
+            var d = currentGradeDate ? jalaliStrToDate(currentGradeDate) : null, t = '';
+            try { if (d) t = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d); } catch(e) {}
+            di.textContent = t;
+        }
+        if (tb) tb.style.visibility = (currentGradeDate && currentGradeDate !== getTodayJalaliStr()) ? 'visible' : 'hidden';
+    }
+
+    // تعداد نمره‌های ثبت‌شدهٔ یک دانش‌آموز در همهٔ دروس و تاریخ‌ها
+    function countStudentGrades(cls, sid) {
+        var prefix = cls.className + '|', n = 0;
+        Object.keys(gradesData).forEach(function(key) {
+            if (key.indexOf(prefix) !== 0) return;
+            var v = gradesData[key] && gradesData[key][sid];
+            if (v !== undefined && v !== null && v !== '') n++;
+        });
+        return n;
+    }
+
     function renderGrades() {
         var container = document.getElementById('gradesContainer');
         var dash = document.getElementById('gradeDashboard');
         var toolbar = document.getElementById('gradeToolbar');
-        var di = document.getElementById('gradeDateInfo');
-        if (di) di.textContent = currentGradeDate ? describeJalaliDate(currentGradeDate) : '';
+        updateGradeDateUI();
         if (!container) return;
 
         var cs = document.getElementById('gradeClassSelect');
@@ -5118,6 +5242,7 @@ var CMPDF = (function(){
             html += '<div class="att-name">';
             html += '<div>' + escapeHtml((s.family || '') + ' ' + (s.name || '')) + '</div>';
             html += '</div>';
+            html += '<div class="gr-count" title="تعداد نمره‌های ثبت‌شده در همهٔ دروس"><b>' + toPersianNum(countStudentGrades(cls, s.id)) + '</b><span>نمره</span></div>';
             html += '<div class="desc-actions">';
             for (var lvl = 1; lvl <= 4; lvl++) {
                 var selected = (hasLevel && parseInt(level) === lvl) ? ' selected' : '';
@@ -5154,6 +5279,8 @@ var CMPDF = (function(){
                 row.querySelectorAll('.desc-btn').forEach(function(b) { b.classList.remove('selected'); });
                 if (newLevel !== null) btn.classList.add('selected');
 
+                var cb = row.querySelector('.gr-count b');
+                if (cb) cb.textContent = toPersianNum(countStudentGrades(cls, sid));
                 updateGradeStats(cls, key);
             });
         });
@@ -5365,15 +5492,11 @@ var CMPDF = (function(){
             stSel.appendChild(opt);
         });
 
-        var fromSel = document.getElementById('reportFromMonth');
-        var toSel = document.getElementById('reportToMonth');
-        fillMonthOptions(fromSel);
-        fillMonthOptions(toSel);
         var defMM = defaultMonthCode();
-        fromSel.value = defMM;
-        toSel.value = defMM;
+        document.getElementById('reportFromMonth').value = monthFirstDay(defMM);
+        document.getElementById('reportToMonth').value = monthLastDay(defMM);
         var yn = document.getElementById('reportYearNote');
-        if (yn) yn.textContent = 'سال تحصیلی ' + yearLabel(yearsState.current) + ' — برای یک ماه، «از» و «تا» را یکی بگذارید.';
+        if (yn) yn.textContent = 'سال تحصیلی ' + yearLabel(yearsState.current) + ' — بازهٔ گزارش را با «از تاریخ» و «تا تاریخ» مشخص کنید.';
 
         document.getElementById('modalMonthlyReport').classList.add('open');
     }
@@ -5397,9 +5520,9 @@ var CMPDF = (function(){
         if (classIdx < 0) { alert('❌ کلاس انتخاب نشده.'); return; }
 
         var cls = appData.classes[classIdx];
-        var rk = monthRangeKeys(document.getElementById('reportFromMonth').value, document.getElementById('reportToMonth').value);
-        var fromMonth = rk.from;
-        var toMonth = rk.to;
+        var rk = normRange(document.getElementById('reportFromMonth').value, document.getElementById('reportToMonth').value);
+        var fromMonth = rk.from;   // از تاریخ (کامل)
+        var toMonth = rk.to;       // تا تاریخ (کامل)
 
         if (reportMode === 'class') {
             var subject = document.getElementById('reportSubjectSelect').value;
@@ -5423,8 +5546,7 @@ var CMPDF = (function(){
         Object.keys(gradesData).forEach(function(key) {
             if (key.indexOf(prefix) !== 0) return;
             var date = key.substring(prefix.length);
-            var month = date.substring(0, 7);
-            if (month < fromMonth || month > toMonth) return;
+            if (!dateInRange(date, fromMonth, toMonth)) return;
             dateMap[date] = gradesData[key];
         });
 
@@ -5448,7 +5570,7 @@ var CMPDF = (function(){
         var padding = dates.length > 10 ? 2 : (dates.length > 6 ? 3 : 5);
 
         var html = '<html><head><meta charset="UTF-8">';
-        html += '<title>گزارش ماهانه</title>';
+        html += '<title>گزارش نمرات</title>';
         html += '<style>';
         html += '@page { size: A4 ' + (isLandscape ? 'landscape' : 'portrait') + '; margin: 0.7cm 0.8cm 0.3cm 0.8cm; }';
         html += 'body { font-family: "Vazirmatn", "B Nazanin", "Tahoma", sans-serif; direction: rtl; margin: 0; }';
@@ -5464,9 +5586,9 @@ var CMPDF = (function(){
         html += 'td.lv4 { color: #ef4444; font-weight: bold; }';
         html += 'td.empty { color: #999; }';
         html += '</style></head><body>';
-        html += '<div class="h">گزارش ماهانهٔ نمرات توصیفی - کلاس ' + escapeHtml(cls.className) + '</div>';
+        html += '<div class="h">گزارش نمرات توصیفی - کلاس ' + escapeHtml(cls.className) + '</div>';
         html += yearLine();
-        html += '<div class="sub">درس: ' + escapeHtml(subject) + ' &nbsp; | &nbsp; گزارش ' + monthRangeText(fromMonth, toMonth) + ' &nbsp; | &nbsp; تعداد جلسات: ' + dates.length + '</div>';
+        html += '<div class="sub">درس: ' + escapeHtml(subject) + ' &nbsp; | &nbsp; گزارش ' + rangeText(fromMonth, toMonth) + ' &nbsp; | &nbsp; تعداد جلسات: ' + dates.length + '</div>';
         html += '<table><thead><tr>';
         html += '<th style="width:30px;">#</th>';
         html += '<th style="width:90px;">کد ملی</th>';
@@ -5512,8 +5634,7 @@ var CMPDF = (function(){
             if (parts.length !== 2) return;
             var subj = parts[0];
             var date = parts[1];
-            var month = date.substring(0, 7);
-            if (month < fromMonth || month > toMonth) return;
+            if (!dateInRange(date, fromMonth, toMonth)) return;
 
             var data = gradesData[key];
             if (data[student.id] === undefined) return;
@@ -5562,7 +5683,7 @@ var CMPDF = (function(){
         html += '<div class="info">' + escapeHtml((student.family || '') + ' ' + (student.name || '')) +
                 ' &nbsp; | &nbsp; کلاس: ' + escapeHtml(cls.className) +
                 ' &nbsp; | &nbsp; کد ملی: ' + escapeHtml(student.codemelli || '—') + '</div>';
-        html += '<div class="sub">گزارش ' + monthRangeText(fromMonth, toMonth) + '</div>';
+        html += '<div class="sub">گزارش ' + rangeText(fromMonth, toMonth) + '</div>';
         html += '<table><thead><tr>';
         html += '<th style="width:120px;">درس</th>';
         dates.forEach(function(d) {
@@ -5695,12 +5816,10 @@ var CMPDF = (function(){
     }
 
     function filterBehaviorsByDate(records, from, to) {
-        var rk = monthRangeKeys(from, to);
+        var rk = normRange(from, to);
         return records.filter(function(r) {
-            var m = String(r.date || '').substring(0, 7);
-            if (rk.from && m < rk.from) return false;
-            if (rk.to && m > rk.to) return false;
-            return true;
+            if (!rk.from && !rk.to) return true;
+            return dateInRange(r.date, rk.from, rk.to);
         });
     }
 
@@ -6004,8 +6123,7 @@ var CMPDF = (function(){
         html += '<div class="h">گزارش رفتار کلاس ' + escapeHtml(cls.className) + '</div>';
         html += yearLine();
         html += '<div class="sub">';
-        var brk = monthRangeKeys(behaviorFilterFrom, behaviorFilterTo);
-        html += 'گزارش ' + monthRangeText(brk.from, brk.to) + ' &nbsp; ';
+        html += 'گزارش ' + rangeText(behaviorFilterFrom, behaviorFilterTo) + ' &nbsp; ';
         html += '| تعداد ثبت: ' + records.length;
         html += '</div>';
         html += '<table><colgroup><col style="width:6%;"><col style="width:16%;"><col style="width:42%;"><col style="width:12%;"><col style="width:12%;"><col style="width:12%;"></colgroup>';
@@ -6051,10 +6169,6 @@ var CMPDF = (function(){
         });
     }
 
-    [[behaviorFromInput, 'از ابتدا'], [behaviorToInput, 'تا انتها']].forEach(function(p) {
-        if (!p[0]) return;
-        p[0].innerHTML = '<option value="">' + p[1] + '</option>' + SCHOOL_MONTHS.map(function(m) { return '<option value="' + m + '">' + monthName(m) + '</option>'; }).join('');
-    });
     if (behaviorFromInput) behaviorFromInput.addEventListener('change', function() { behaviorFilterFrom = this.value; renderBehaviors(); });
     if (behaviorToInput) behaviorToInput.addEventListener('change', function() { behaviorFilterTo = this.value; renderBehaviors(); });
 
@@ -6170,12 +6284,10 @@ var CMPDF = (function(){
         if (toolbar) toolbar.style.display = 'flex';
 
         var allHw = getClassHomeworks(cls);
-        var hwRk = monthRangeKeys(hwFilterFrom, hwFilterTo);
+        var hwRk = normRange(hwFilterFrom, hwFilterTo);
         var filtered = allHw.filter(function(h) {
             if (hwFilterSubject && h.subject !== hwFilterSubject) return false;
-            var hm = String(h.dueDate || '').substring(0, 7);
-            if (hwRk.from && hm < hwRk.from) return false;
-            if (hwRk.to && hm > hwRk.to) return false;
+            if ((hwRk.from || hwRk.to) && !dateInRange(h.dueDate, hwRk.from, hwRk.to)) return false;
             return true;
         });
 
@@ -6518,7 +6630,7 @@ var CMPDF = (function(){
         inp.addEventListener('click', open);
         inp.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
     }
-    ['attDate', 'gradeDate', 'behaviorDate'].forEach(attachJalaliPicker);
+    ['attDate', 'gradeDate', 'behaviorDate', 'behaviorFromDate', 'behaviorToDate', 'hwFromDate', 'hwToDate', 'reportDateFrom', 'reportDateTo', 'reportFromMonth', 'reportToMonth'].forEach(attachJalaliPicker);
 
     // ═══ رویدادهای صفحه ═══
     var hwClassSel = document.getElementById('hwClassSelect');
@@ -6550,13 +6662,6 @@ var CMPDF = (function(){
         });
     }
 
-    function fillHwMonthSelects() {
-        [[hwFromDate, 'از ابتدا'], [hwToDate, 'تا انتها']].forEach(function(p) {
-            if (!p[0]) return;
-            p[0].innerHTML = '<option value="">' + p[1] + '</option>' + SCHOOL_MONTHS.map(function(m) { return '<option value="' + m + '">' + monthName(m) + '</option>'; }).join('');
-        });
-    }
-    fillHwMonthSelects();
     if (hwFromDate) hwFromDate.addEventListener('change', function() { hwFilterFrom = this.value; renderHomeworkList(); });
     if (hwToDate) hwToDate.addEventListener('change', function() { hwFilterTo = this.value; renderHomeworkList(); });
 
@@ -6665,12 +6770,10 @@ var CMPDF = (function(){
     function printClassHomeworkReport(cls) {
         var students = cls.students || [];
         if (students.length === 0) { alert('❌ کلاس دانش‌آموز ندارد.'); return; }
-        var rk = monthRangeKeys(hwFilterFrom, hwFilterTo);
+        var rk = normRange(hwFilterFrom, hwFilterTo);
         var list = getClassHomeworks(cls).filter(function(h) {
             if (hwFilterSubject && h.subject !== hwFilterSubject) return false;
-            var hm = String(h.dueDate || '').substring(0, 7);
-            if (rk.from && hm < rk.from) return false;
-            if (rk.to && hm > rk.to) return false;
+            if ((rk.from || rk.to) && !dateInRange(h.dueDate, rk.from, rk.to)) return false;
             return true;
         });
         if (list.length === 0) { alert('❌ تکلیفی در این بازه/فیلتر وجود ندارد.'); return; }
@@ -6693,7 +6796,7 @@ var CMPDF = (function(){
         html += '</style></head><body>';
         html += '<div class="h">گزارش تکالیف کلاس ' + escapeHtml(cls.className) + '</div>';
         html += yearLine();
-        html += '<div class="sub">بازه: ' + monthRangeText(hwFilterFrom, hwFilterTo) + (hwFilterSubject ? ' &nbsp;|&nbsp; درس: ' + escapeHtml(hwFilterSubject) : '') + ' &nbsp;|&nbsp; تعداد تکالیف: ' + toPersianNum(list.length) + '</div>';
+        html += '<div class="sub">بازه: ' + rangeText(hwFilterFrom, hwFilterTo) + (hwFilterSubject ? ' &nbsp;|&nbsp; درس: ' + escapeHtml(hwFilterSubject) : '') + ' &nbsp;|&nbsp; تعداد تکالیف: ' + toPersianNum(list.length) + '</div>';
         html += '<table><thead><tr><th>#</th><th>نام و نام خانوادگی</th>';
         list.forEach(function(h) {
             html += '<th>' + escapeHtml(h.title) + '<small>' + (h.subject ? escapeHtml(h.subject) + ' - ' : '') + fmtDayMonth(h.dueDate) + '</small></th>';
@@ -6749,12 +6852,8 @@ var CMPDF = (function(){
         if (cur !== '') sel.value = cur;
     }
 
-    function isInDateRange(dateStr, fromMonth, toMonth) {
-        if (!dateStr) return false;
-        var month = dateStr.substring(0, 7);
-        if (fromMonth && month < fromMonth) return false;
-        if (toMonth && month > toMonth) return false;
-        return true;
+    function isInDateRange(dateStr, from, to) {
+        return dateInRange(dateStr, from, to);
     }
 
     // ===== جدول نمرات توصیفی: درس‌ها در سطر، تاریخ‌ها در ستون =====
@@ -6975,6 +7074,7 @@ var CMPDF = (function(){
         else if (currentReportTab === 'class-summary') renderClassSummary(cls);
         else if (currentReportTab === 'ranking') renderRanking(cls);
         else if (currentReportTab === 'compare') renderCompare(cls);
+        else if (currentReportTab === 'daily') renderDailyReport(cls);
     }
 
     // ===== تب ۱: کارنامهٔ دانش‌آموز =====
@@ -7359,7 +7459,7 @@ var CMPDF = (function(){
         html += '<span><b>نام پدر:</b> ' + escapeHtml(student.father || '—') + '</span>';
         html += '<span><b>کد ملی:</b> ' + escapeHtml(student.codemelli || '—') + '</span></div>';
         html += '<div class="il"><span><b>کلاس:</b> ' + escapeHtml(cls.className) + '</span>';
-        html += '<span><b>بازهٔ گزارش:</b> ' + monthRangeText(reportFilterFrom, reportFilterTo) + '</span></div>';
+        html += '<span><b>بازهٔ گزارش:</b> ' + rangeText(reportFilterFrom, reportFilterTo) + '</span></div>';
         html += '</div>';
 
         // نمرات
@@ -7556,6 +7656,145 @@ var CMPDF = (function(){
         next();
     }
 
+    // ===== تب ۵: گزارش روزانهٔ کل کلاس (حضور و غیاب + نمرات + رفتار + تکالیف) =====
+    var dailyReportDate = '';
+    var HW_STATUS_FA = { done: 'کامل', partial: 'ناقص', notdone: 'انجام نشده' };
+    var ATT_STATUS_FA = { present: 'حاضر', absent_j: 'غایب موجه', absent_u: 'غایب غیرموجه', late: 'تأخیر' };
+
+    function collectDailyData(cls, date) {
+        var students = cls.students || [];
+        var d = { att: newAttStats(), attNone: 0, rows: [], subjects: {}, behPos: 0, behNeg: 0, hwList: [] };
+        var byId = {};
+        students.forEach(function(s) {
+            byId[s.id] = { s: s, att: getStatus(cls, date, s.id) || '', grades: [], beh: [], hw: [] };
+        });
+        students.forEach(function(s) {
+            var st = byId[s.id].att;
+            if (st) addAttStat(d.att, st); else d.attNone++;
+        });
+        var prefix = cls.className + '|';
+        Object.keys(gradesData).forEach(function(key) {
+            if (key.indexOf(prefix) !== 0) return;
+            var parts = key.substring(prefix.length).split('|');
+            if (parts.length !== 2 || parts[1] !== date) return;
+            var subj = parts[0], data = gradesData[key] || {};
+            var info = d.subjects[subj] = { count: 0, levels: { 1: 0, 2: 0, 3: 0, 4: 0 }, note: gradeNotes[key] || '' };
+            Object.keys(data).forEach(function(sid) {
+                if (!byId[sid]) return;
+                var lv = parseInt(data[sid]);
+                if (!(lv >= 1 && lv <= 4)) return;
+                info.count++; info.levels[lv]++;
+                byId[sid].grades.push({ subject: subj, level: lv });
+            });
+        });
+        (behaviorsData[cls.className] || []).forEach(function(b) {
+            if (b.date !== date || !byId[b.studentId]) return;
+            if (b.type === 'positive') d.behPos++; else d.behNeg++;
+            byId[b.studentId].beh.push({ type: b.type, reason: b.reason || '' });
+        });
+        (homeworkData[cls.className] || []).forEach(function(h) {
+            if (h.dueDate !== date) return;
+            d.hwList.push(h);
+            students.forEach(function(s) {
+                byId[s.id].hw.push({ title: h.title || '', subject: h.subject || '', status: (h.status && h.status[s.id]) || '' });
+            });
+        });
+        d.rows = students.map(function(s) { return byId[s.id]; });
+        d.gradeEntries = 0;
+        Object.keys(d.subjects).forEach(function(k) { d.gradeEntries += d.subjects[k].count; });
+        return d;
+    }
+
+    function buildDailyReportHtml(cls, date) {
+        var d = collectDailyData(cls, date);
+        var n = d.rows.length, fs = n > 40 ? 8 : n > 30 ? 9 : n > 22 ? 10 : 11, pad = n > 40 ? 2 : n > 30 ? 3 : 4;
+        var html = '<html><head><meta charset="UTF-8"><title>گزارش روزانهٔ کلاس</title><style>';
+        html += '@page { size: A4 portrait; margin: 0.7cm 0.8cm 0.3cm 0.8cm; }';
+        html += 'body { font-family: "Vazirmatn", "B Nazanin", "Tahoma", sans-serif; direction: rtl; margin: 0; }';
+        html += '.h { text-align: center; font-weight: bold; font-size: 15pt; padding: 4px 0 6px 0; border-bottom: 1.5px solid #000; margin-bottom: 6px; }';
+        html += '.sub { text-align: center; font-size: 11pt; margin-bottom: 6px; }';
+        html += '.sum { margin: 6px 0; padding: 6px 8px; background: #f3f3f3; border-radius: 6px; font-size: ' + fs + 'pt; line-height: 1.9; }';
+        html += 'table { border-collapse: collapse; width: 100%; font-size: ' + fs + 'pt; margin-top: 6px; }';
+        html += 'th, td { border: 1px solid #000; text-align: center; padding: ' + pad + 'px 3px; vertical-align: middle; }';
+        html += 'th { background: #e8e8e8; } td.name { text-align: right; padding-right: 6px; font-weight: 600; white-space: nowrap; }';
+        html += 'td.l { text-align: right; font-size: ' + Math.max(7, fs - 1) + 'pt; }';
+        html += '</style></head><body>';
+        html += '<div class="h">گزارش روزانهٔ کلاس ' + escapeHtml(cls.className) + '</div>';
+        html += yearLine();
+        html += '<div class="sub">' + escapeHtml(describeJalaliDate(date)) + '</div>';
+
+        html += '<div class="sum"><b>حضور و غیاب:</b> حاضر ' + toPersianNum(d.att.present) + ' | غایب موجه ' + toPersianNum(d.att.absentJ) +
+                ' | غایب غیرموجه ' + toPersianNum(d.att.absentU) + ' | تأخیر ' + toPersianNum(d.att.late) +
+                (d.attNone ? ' | ثبت‌نشده ' + toPersianNum(d.attNone) : '') + '</div>';
+        var subs = Object.keys(d.subjects);
+        html += '<div class="sum"><b>نمرات:</b> ';
+        if (!subs.length) html += 'نمره‌ای در این روز ثبت نشده است.';
+        else html += subs.map(function(sb) {
+            var i = d.subjects[sb];
+            return escapeHtml(sb) + ' (' + toPersianNum(i.count) + ' نفر: ' +
+                [1, 2, 3, 4].map(function(l) { return DESC_LEVELS[l].label + ' ' + toPersianNum(i.levels[l]); }).join('، ') + ')' +
+                (i.note ? ' — ' + escapeHtml(i.note) : '');
+        }).join('<br>');
+        html += '</div>';
+        html += '<div class="sum"><b>رفتار:</b> مثبت ' + toPersianNum(d.behPos) + ' | منفی ' + toPersianNum(d.behNeg) +
+                ' &nbsp;&nbsp;&nbsp; <b>تکالیف (موعد این روز):</b> ' +
+                (d.hwList.length ? d.hwList.map(function(h) { return escapeHtml((h.subject ? h.subject + ': ' : '') + (h.title || '')); }).join('، ') : 'تکلیفی ثبت نشده') + '</div>';
+
+        html += '<table><thead><tr><th style="width:26px;">#</th><th>نام و نام خانوادگی</th><th>حضور</th><th>نمرات</th><th>رفتار</th><th>تکالیف</th></tr></thead><tbody>';
+        d.rows.forEach(function(r, i) {
+            html += '<tr><td>' + toPersianNum(i + 1) + '</td>';
+            html += '<td class="name">' + escapeHtml((r.s.family || '') + ' ' + (r.s.name || '')) + '</td>';
+            html += '<td>' + (r.att ? ATT_STATUS_FA[r.att] || '' : '—') + '</td>';
+            html += '<td class="l">' + (r.grades.length ? r.grades.map(function(g) { return escapeHtml(g.subject) + ': ' + DESC_LEVELS[g.level].label; }).join('<br>') : '—') + '</td>';
+            html += '<td class="l">' + (r.beh.length ? r.beh.map(function(b) { return (b.type === 'positive' ? '＋ ' : '－ ') + escapeHtml(b.reason || (b.type === 'positive' ? 'مثبت' : 'منفی')); }).join('<br>') : '—') + '</td>';
+            html += '<td class="l">' + (r.hw.length ? r.hw.map(function(h) { return escapeHtml(h.title) + ': ' + (HW_STATUS_FA[h.status] || '—'); }).join('<br>') : '—') + '</td></tr>';
+        });
+        html += '</tbody></table></body></html>';
+        return html;
+    }
+
+    function renderDailyReport(cls) {
+        var content = document.getElementById('reportContent');
+        if (!dailyReportDate) dailyReportDate = getTodayJalaliStr();
+        var date = dailyReportDate;
+        var students = cls.students || [];
+        if (students.length === 0) {
+            content.innerHTML = '<div class="card"><div class="report-empty">این کلاس دانش‌آموزی ندارد</div></div>';
+            return;
+        }
+        var d = collectDailyData(cls, date);
+        var wd = '';
+        try { var dd = jalaliStrToDate(date); if (dd) wd = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(dd); } catch(e) {}
+        var html = '<div class="att-datebar">' +
+            '<button class="btn btn-outline att-nav" id="btnDrPrev">▶ روز قبل</button>' +
+            '<div class="att-datecenter"><div class="att-datebox">' +
+                '<input type="text" class="att-dateinput" id="drDate" value="' + date + '" aria-label="تاریخ">' +
+                '<div class="att-weekday">' + wd + '</div></div>' +
+                '<button class="btn btn-outline btn-sm att-today" id="btnDrToday" style="visibility:' + (date !== getTodayJalaliStr() ? 'visible' : 'hidden') + ';">📅 امروز</button></div>' +
+            '<button class="btn btn-outline att-nav" id="btnDrNext">روز بعد ◀</button></div>';
+        html += '<div class="dashboard">';
+        function card(icon, bg, val, label) {
+            return '<div class="dash-card"><div class="dash-icon" style="background:' + bg + ';">' + icon + '</div><div class="dash-info"><div class="dash-value">' + val + '</div><div class="dash-label">' + label + '</div></div></div>';
+        }
+        html += card('✅', '#d1fae5', toPersianNum(d.att.present) + ' / ' + toPersianNum(students.length), 'حاضر');
+        html += card('❌', '#fee2e2', toPersianNum(d.att.absent), 'غایب');
+        html += card('⏰', '#fef3c7', toPersianNum(d.att.late), 'تأخیر');
+        html += card('📝', '#dbeafe', toPersianNum(d.gradeEntries), 'نمرهٔ ثبت‌شده');
+        html += card('🎯', '#ede9fe', toPersianNum(d.behPos) + ' / ' + toPersianNum(d.behNeg), 'رفتار مثبت / منفی');
+        html += card('📖', '#e0f2fe', toPersianNum(d.hwList.length), 'تکلیف (موعد امروز)');
+        html += '</div>';
+        html += '<div style="margin-top:14px;"><button class="btn btn-primary" id="btnDrView">📄 نمایش گزارش روزانه و چاپ</button></div>';
+        content.innerHTML = html;
+
+        function go(nd) { dailyReportDate = nd; renderDailyReport(cls); }
+        document.getElementById('btnDrPrev').addEventListener('click', function() { var b = jalaliStrToDate(dailyReportDate); b.setDate(b.getDate() - 1); go(dateToJalaliStr(b)); });
+        document.getElementById('btnDrNext').addEventListener('click', function() { var b = jalaliStrToDate(dailyReportDate); b.setDate(b.getDate() + 1); go(dateToJalaliStr(b)); });
+        document.getElementById('btnDrToday').addEventListener('click', function() { go(getTodayJalaliStr()); });
+        attachJalaliPicker('drDate');
+        document.getElementById('drDate').addEventListener('change', function() { var n = normalizeDate(this.value); if (n) go(n); });
+        document.getElementById('btnDrView').addEventListener('click', function() { openPrintWindow(buildDailyReportHtml(cls, dailyReportDate)); });
+    }
+
     // ===== رویدادها =====
     var reportClassSel = document.getElementById('reportClassSelect');
     var reportFromInput = document.getElementById('reportDateFrom');
@@ -7569,16 +7808,10 @@ var CMPDF = (function(){
         });
     }
 
-    fillMonthOptions(reportFromInput, 'از ابتدای سال');
-    fillMonthOptions(reportToInput, 'تا پایان سال');
-
     function applyReportMonthFilter() {
-        if (reportFromInput && reportToInput && reportFromInput.value && reportToInput.value) {
-            var fi = SCHOOL_MONTHS.indexOf(reportFromInput.value);
-            var ti = SCHOOL_MONTHS.indexOf(reportToInput.value);
-            if (fi > ti) { var tmp = reportFromInput.value; reportFromInput.value = reportToInput.value; reportToInput.value = tmp; }
-        }
-        var rk = monthRangeKeys(reportFromInput ? reportFromInput.value : '', reportToInput ? reportToInput.value : '');
+        var rk = normRange(reportFromInput ? reportFromInput.value : '', reportToInput ? reportToInput.value : '');
+        if (reportFromInput) reportFromInput.value = rk.from;
+        if (reportToInput) reportToInput.value = rk.to;
         reportFilterFrom = rk.from;
         reportFilterTo = rk.to;
         renderReports();
@@ -8082,7 +8315,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.8';
+    var APP_VERSION = '4.6.9';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -8094,15 +8327,38 @@ var CMPDF = (function(){
         return 0;
     }
     function updMsg(html, kind) {
-        var el = document.getElementById('updStatus'); if (!el) return;
-        el.innerHTML = html;
-        el.style.color = kind === 'bad' ? '#dc2626' : kind === 'ok' ? '#059669' : 'var(--text-muted)';
+        var el = document.getElementById('updStatus');
+        var col = kind === 'bad' ? '#dc2626' : kind === 'ok' ? '#059669' : 'var(--text-muted)';
+        if (el) { el.innerHTML = html; el.style.color = col; }
+        var ms = document.getElementById('updModalStatus');
+        if (ms) { ms.innerHTML = html; ms.style.color = col; ms.style.display = html ? '' : 'none'; }
+    }
+    // پنجرهٔ اطلاع‌رسانی نسخهٔ جدید: توضیح تغییرات + «بروزرسانی» / «انصراف»
+    function showUpdateModal(auto) {
+        var pu = pendingUpdate, m = document.getElementById('modalUpdate');
+        if (!pu || !m) return;
+        if (auto) {   // بعد از «انصراف»، همان نسخه تا ۱۲ ساعت دوباره خودکار پرسیده نمی‌شود
+            try {
+                var sn = String(realLS.getItem('cmupd_snooze') || '').split('|');
+                if (sn[0] === pu.version && Date.now() - Number(sn[1] || 0) < 12 * 3600 * 1000) return;
+            } catch(e) {}
+        }
+        var fa = function(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); };
+        document.getElementById('updModalVer').innerHTML = 'نسخهٔ <b>' + escapeHtml(fa(pu.version)) + '</b> &nbsp;(نسخهٔ فعلی شما: ' + escapeHtml(fa(APP_VERSION)) + ')';
+        var notes = pu.notes || [];
+        document.getElementById('updModalNotes').innerHTML = notes.length
+            ? '<div class="upd-notes-title">تغییرات این نسخه:</div><ul>' + notes.map(function(n) { return '<li>' + escapeHtml(String(n)) + '</li>'; }).join('') + '</ul>'
+            : '<div class="upd-notes-title">این نسخه شامل بهبودها و رفع اشکال‌هاست.</div>';
+        var ms = document.getElementById('updModalStatus'); if (ms) { ms.innerHTML = ''; ms.style.display = 'none'; }
+        var bi = document.getElementById('btnUpdModalInstall'), bc = document.getElementById('btnUpdModalCancel');
+        if (bi) bi.disabled = false; if (bc) bc.disabled = false;
+        m.classList.add('open');
     }
     function readUpdInputs() { return updCfg(); }
     function rawUrl(cfg, path) {
         return 'https://raw.githubusercontent.com/' + cfg.repo + '/' + encodeURI(cfg.branch) + '/' + path;
     }
-    function checkUpdate() {
+    function checkUpdate(auto) {
         var btnI = document.getElementById('btnUpdInstall'); btnI.style.display = 'none'; pendingUpdate = null;
         var cfg;
         try { cfg = readUpdInputs(); } catch(e) { updMsg('❌ ' + e.message, 'bad'); return; }
@@ -8121,10 +8377,13 @@ var CMPDF = (function(){
             if (verCmp(j.version, APP_VERSION) <= 0) { updMsg('✅ نسخهٔ شما (' + escapeHtml(APP_VERSION) + ') به‌روز است.', 'ok'); return; }
             pendingUpdate = { cfg: cfg, version: String(j.version), files: files, sha: (j.sha256 && typeof j.sha256 === 'object') ? j.sha256 : null };
             var notes = Array.isArray(j.notes) ? j.notes : (j.notes ? [String(j.notes)] : []);
+            pendingUpdate.notes = notes;
             updMsg('🎉 نسخهٔ جدید <b>' + escapeHtml(j.version) + '</b> آماده است (نسخهٔ شما: ' + escapeHtml(APP_VERSION) + ').' +
                 (notes.length ? '<ul style="margin:6px 18px 0;padding:0;line-height:1.9;">' + notes.map(function(n) { return '<li>' + escapeHtml(String(n)) + '</li>'; }).join('') + '</ul>' : ''), 'ok');
             btnI.style.display = '';
+            showUpdateModal(!!auto);
         }).catch(function(e) {
+            if (auto) return;   // بررسی خودکار: خطا را به کاربر نشان نده
             updMsg('❌ ' + (e && e.message ? (e.name === 'TypeError' ? 'اتصال به اینترنت برقرار نشد.' : e.message) : 'خطا'), 'bad');
         });
     }
@@ -8139,12 +8398,13 @@ var CMPDF = (function(){
         if (/\.xlsx$/i.test(p)) return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
         return 'application/octet-stream';
     }
-    function installUpdate() {
+    function installUpdate(fromModal) {
         if (!pendingUpdate) return;
         if (!('caches' in window)) { updMsg('❌ این مرورگر ذخیره‌سازی آفلاین ندارد؛ به‌روزرسانی خودکار ممکن نیست.', 'bad'); return; }
-        if (!confirm('نسخهٔ ' + pendingUpdate.version + ' دریافت و نصب شود؟ اطلاعات شما حفظ می‌شود.')) return;
+        if (fromModal !== true && !confirm('نسخهٔ ' + pendingUpdate.version + ' دریافت و نصب شود؟ اطلاعات شما حفظ می‌شود.')) return;
         var pu = pendingUpdate, btn = document.getElementById('btnUpdInstall'), got = [];
-        btn.disabled = true;
+        var mI = document.getElementById('btnUpdModalInstall'), mC = document.getElementById('btnUpdModalCancel');
+        btn.disabled = true; if (mI) mI.disabled = true; if (mC) mC.disabled = true;
         var chain = Promise.resolve();
         pu.files.forEach(function(f, i) {
             chain = chain.then(function() {
@@ -8186,7 +8446,7 @@ var CMPDF = (function(){
             var p = (navigator.serviceWorker && navigator.serviceWorker.getRegistration) ? navigator.serviceWorker.getRegistration().then(function(r) { return r && r.update(); }).catch(function() {}) : Promise.resolve();
             return p.then(function() { setTimeout(function() { location.reload(); }, 900); });
         }).catch(function(e) {
-            btn.disabled = false;
+            btn.disabled = false; if (mI) mI.disabled = false; if (mC) mC.disabled = false;
             updMsg('❌ ' + (e && e.message ? e.message : 'خطا در به‌روزرسانی'), 'bad');
         });
     }
@@ -8194,8 +8454,24 @@ var CMPDF = (function(){
         var fa = function(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); };
         var vl = document.getElementById('updCurrent'); if (vl) vl.textContent = fa(APP_VERSION);
         var fl = document.getElementById('appVersionLabel'); if (fl) fl.textContent = fa(APP_VERSION);
-        var bc = document.getElementById('btnUpdCheck'); if (bc) bc.addEventListener('click', checkUpdate);
-        var bi = document.getElementById('btnUpdInstall'); if (bi) bi.addEventListener('click', installUpdate);
+        var bc = document.getElementById('btnUpdCheck'); if (bc) bc.addEventListener('click', function() { checkUpdate(false); });
+        var bi = document.getElementById('btnUpdInstall'); if (bi) bi.addEventListener('click', function() { installUpdate(false); });
+        var mi = document.getElementById('btnUpdModalInstall'); if (mi) mi.addEventListener('click', function() { installUpdate(true); });
+        var mc = document.getElementById('btnUpdModalCancel');
+        if (mc) mc.addEventListener('click', function() {
+            try { if (pendingUpdate) realLS.setItem('cmupd_snooze', pendingUpdate.version + '|' + Date.now()); } catch(e) {}
+            closeModal('modalUpdate');
+        });
+        // بررسی خودکار نسخهٔ جدید (حداکثر هر ۶ ساعت)؛ اگر نسخهٔ جدیدی بود، پنجرهٔ اطلاع‌رسانی باز می‌شود
+        setTimeout(function() {
+            try {
+                if (!navigator.onLine) return;
+                var last = Number(realLS.getItem('cmupd_last') || 0);
+                if (Date.now() - last < 6 * 3600 * 1000) return;
+                realLS.setItem('cmupd_last', String(Date.now()));
+                checkUpdate(true);
+            } catch(e) {}
+        }, 6000);
     })();
 
     /* ═══════════════════════════════════════════════════
