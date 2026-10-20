@@ -2118,7 +2118,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۹</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۰</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -5180,8 +5180,8 @@ var CMPDF = (function(){
     }
 
     // تعداد نمره‌های ثبت‌شدهٔ یک دانش‌آموز در همهٔ دروس و تاریخ‌ها
-    function countStudentGrades(cls, sid) {
-        var prefix = cls.className + '|', n = 0;
+    function countStudentGrades(cls, sid, subject) {
+                var prefix = cls.className + '|' + (subject || currentSubject) + '|', n = 0;
         Object.keys(gradesData).forEach(function(key) {
             if (key.indexOf(prefix) !== 0) return;
             var v = gradesData[key] && gradesData[key][sid];
@@ -5242,7 +5242,7 @@ var CMPDF = (function(){
             html += '<div class="att-name">';
             html += '<div>' + escapeHtml((s.family || '') + ' ' + (s.name || '')) + '</div>';
             html += '</div>';
-            html += '<div class="gr-count" title="تعداد نمره‌های ثبت‌شده در همهٔ دروس"><b>' + toPersianNum(countStudentGrades(cls, s.id)) + '</b><span>نمره</span></div>';
+            html += '<div class="gr-count" title="تعداد نمره‌های این درس"><b>' + toPersianNum(countStudentGrades(cls, s.id, currentSubject)) + '</b><span>نمره</span></div>';
             html += '<div class="desc-actions">';
             for (var lvl = 1; lvl <= 4; lvl++) {
                 var selected = (hasLevel && parseInt(level) === lvl) ? ' selected' : '';
@@ -5280,7 +5280,7 @@ var CMPDF = (function(){
                 if (newLevel !== null) btn.classList.add('selected');
 
                 var cb = row.querySelector('.gr-count b');
-                if (cb) cb.textContent = toPersianNum(countStudentGrades(cls, sid));
+                if (cb) cb.textContent = toPersianNum(countStudentGrades(cls, sid, currentSubject));
                 updateGradeStats(cls, key);
             });
         });
@@ -8315,7 +8315,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.9';
+    var APP_VERSION = '4.6.10';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
