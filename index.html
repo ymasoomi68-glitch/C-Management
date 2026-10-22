@@ -649,6 +649,8 @@ window.CMStore = (function(){
     #printViewer .pv-frame { position: absolute; top: 0; left: 0; border: 0; background: #fff; transform-origin: top left; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
 
     /* ═══ بنر یادآوری پشتیبان‌گیری ═══ */ /* [backup-reminder] */
+    .home-upd-notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; padding: 12px 16px; border-radius: 14px; background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1.5px solid #818cf8; color: #312e81; font-size: 14px; line-height: 1.8; }
+    .home-upd-notice .hun-btns { display: flex; gap: 8px; }
     #backupReminderBanner {
         position: sticky; top: 60px; z-index: 97;
         background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff;
@@ -1590,6 +1592,10 @@ window.CMStore = (function(){
              🏠 صفحهٔ اصلی
              ═══════════════════════════════════════════════════ -->
         <div class="page active" id="page-home">
+            <div id="homeUpdateNotice" class="home-upd-notice" style="display:none;" role="alert">
+                <div id="homeUpdateText"></div>
+                <div class="hun-btns"><button class="btn btn-primary btn-sm" id="btnHomeUpdOk">تأیید</button><button class="btn btn-outline btn-sm" id="btnHomeUpdLater">بعداً</button></div>
+            </div>
             <section class="home-hero">
                 <span class="hh-blob hb1"></span><span class="hh-blob hb2"></span>
                 <div class="hh-text">
@@ -1995,10 +2001,10 @@ window.CMStore = (function(){
             <!-- تب‌ها -->
             <div class="report-tabs" id="reportTabs" style="display:none;">
                 <button class="report-tab active" data-tab="individual">👤 کارنامهٔ دانش‌آموز</button>
-                <button class="report-tab" data-tab="class-summary">📊 خلاصهٔ کلاس</button>
+                <button class="report-tab" data-tab="daily">📅 گزارش روزانه</button>
                 <button class="report-tab" data-tab="ranking">🏆 رتبه‌بندی</button>
                 <button class="report-tab" data-tab="compare">⚖️ مقایسه</button>
-                <button class="report-tab" data-tab="daily">📅 گزارش روزانه</button>
+                <button class="report-tab" data-tab="class-summary">📊 خلاصهٔ کلاس</button>
             </div>
 
             <div id="reportContent">
@@ -2214,7 +2220,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۱</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۲</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2371,6 +2377,19 @@ window.CMStore = (function(){
         <h2 class="modal-title" id="sgTitle"></h2>
         <div id="sgBody" style="max-height:60vh;overflow:auto;"></div>
         <div class="modal-actions"><button class="btn btn-outline" data-close-modal="modalStudentGrades">بستن</button></div>
+    </div>
+</div>
+
+<!-- مودال هشدار پشتیبان‌گیری (صفحهٔ اول) [backup-reminder] -->
+<div class="modal-overlay" id="modalBackupWarn">
+    <div class="modal" style="max-width:420px;text-align:center;">
+        <div style="font-size:48px;">⚠️</div>
+        <h2 class="modal-title" id="bwTitle" style="border:0;"></h2>
+        <p id="bwSub" style="font-size:13px;color:var(--text-muted);line-height:1.9;margin-bottom:14px;"></p>
+        <div class="modal-actions" style="justify-content:center;">
+            <button class="btn btn-outline" id="btnBackupWarnLater">⏰ بعداً</button>
+            <button class="btn btn-primary" id="btnBackupWarnDownload">📥 دانلود پشتیبان</button>
+        </div>
     </div>
 </div>
 
@@ -4261,7 +4280,8 @@ var CMPDF = (function(){
     }
 
     // نمایش گزارش در صفحهٔ برنامه (پیش‌نمایش A4) و دکمهٔ «چاپ» در نوار بالا
-    function openPrintWindow(html) {
+    function openPrintWindow(html, opts) {
+        opts = opts || {};
         var old = document.getElementById('printViewer');
         if (old && old.parentNode) old.parentNode.removeChild(old);
         var land = /size:\s*A4\s+landscape/i.test(html);
@@ -4272,6 +4292,7 @@ var CMPDF = (function(){
         ov.innerHTML =
             '<div class="pv-bar"><span class="pv-title">📄 گزارش</span>' +
             '<span class="pv-actions"><button type="button" class="btn btn-primary" id="pvPrint">🖨️ چاپ</button>' +
+            (opts.imageName ? '<button type="button" class="btn btn-success" id="pvImage">🖼️ دانلود به صورت عکس</button>' : '') +
             '<button type="button" class="btn btn-outline" id="pvClose">✕ بستن</button></span></div>' +
             '<div class="pv-scroll"><div class="pv-wrap"><iframe class="pv-frame" title="گزارش"></iframe></div></div>';
         document.body.appendChild(ov);
@@ -4306,6 +4327,52 @@ var CMPDF = (function(){
         ov.querySelector('#pvPrint').addEventListener('click', function() {
             try { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
             catch(e) { alert('❌ خطا در چاپ: ' + e.message); }
+        });
+        var pvImg = ov.querySelector('#pvImage');
+        if (pvImg) pvImg.addEventListener('click', function() {
+            var orig = pvImg.textContent;
+            pvImg.disabled = true; pvImg.textContent = '⏳ در حال ساخت عکس...';
+            htmlToPngBlob(html).then(function(blob) {
+                saveBlob(blob, safeFileName(opts.imageName) + '.png');
+            }).catch(function(e) {
+                alert('❌ ساخت عکس ممکن نشد: ' + (e && e.message ? e.message : 'خطا') + '\nاز دکمهٔ «چاپ» و گزینهٔ «ذخیره به‌صورت PDF» استفاده کنید.');
+            }).then(function() { pvImg.disabled = false; pvImg.textContent = orig; });
+        });
+    }
+
+    // HTML یک صفحهٔ A4 ← تصویر PNG با کیفیت بالا (۳ برابر)
+    function htmlToPngBlob(html) {
+        return new Promise(function(resolve, reject) {
+            var land = /size:\s*A4\s+landscape/i.test(html), PW = land ? 1123 : 794, PH = land ? 794 : 1123;
+            var iframe = document.createElement('iframe');
+            iframe.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + PW + 'px;height:' + PH + 'px;border:0;visibility:hidden;';
+            document.body.appendChild(iframe);
+            var done = function(err, blob) { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); err ? reject(err) : resolve(blob); };
+            try {
+                var doc = iframe.contentWindow.document;
+                doc.open(); doc.write(html); doc.close();
+                setTimeout(function() {
+                    try {
+                        fitDocPages(doc, html);
+                        var mm = html.match(/@page\s*\{[^}]*?margin:\s*([\d.]+)cm\s+([\d.]+)cm\s+([\d.]+)cm\s+([\d.]+)cm/i) || [0, 0.8, 1, 0.3, 1];
+                        doc.body.style.margin = mm[1] + 'cm ' + mm[2] + 'cm ' + mm[3] + 'cm ' + mm[4] + 'cm';
+                        doc.documentElement.style.cssText += ';width:' + PW + 'px;height:' + PH + 'px;background:#fff;overflow:hidden;';
+                        var xhtml = new XMLSerializer().serializeToString(doc.documentElement);
+                        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + PW + '" height="' + PH + '"><foreignObject x="0" y="0" width="' + PW + '" height="' + PH + '">' + xhtml + '</foreignObject></svg>';
+                        var img = new Image();
+                        img.onload = function() {
+                            try {
+                                var S = 3, cv = document.createElement('canvas'); cv.width = PW * S; cv.height = PH * S;
+                                var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+                                cx.drawImage(img, 0, 0, cv.width, cv.height);
+                                cv.toBlob(function(b) { b ? done(null, b) : done(new Error('خروجی تصویر خالی بود.')); }, 'image/png');
+                            } catch(e) { done(e); }
+                        };
+                        img.onerror = function() { done(new Error('رسم گزارش ممکن نشد.')); };
+                        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                    } catch(e) { done(e); }
+                }, 350);
+            } catch(e) { done(e); }
         });
     }
 
@@ -7678,7 +7745,7 @@ var CMPDF = (function(){
         html += '<style>' + cardCss() + '</style></head><body>';
         html += '<div class="page">' + buildCardBody(cls, student, stats) + '</div>';
         html += '</body></html>';
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'کارنامه ' + ((student.family || '') + ' ' + (student.name || '')).trim() });
     }
 
     // ===== چاپ همهٔ کارنامه‌ها (هر دانش‌آموز یک صفحه) =====
@@ -7854,49 +7921,95 @@ var CMPDF = (function(){
 
     function buildDailyReportHtml(cls, date) {
         var d = collectDailyData(cls, date);
-        var n = d.rows.length, fs = n > 40 ? 8 : n > 30 ? 9 : n > 22 ? 10 : 11, pad = n > 40 ? 2 : n > 30 ? 3 : 4;
+        var n = d.rows.length;
+        var hasGrades = d.rows.some(function(r) { return r.grades.length; });
+        var hasBeh = d.rows.some(function(r) { return r.beh.length; });
+        var hasHw = d.hwList.length > 0;
+        var kCols = (hasGrades ? 1 : 0) + (hasBeh ? 1 : 0) + (hasHw ? 1 : 0);   // تعداد ستون‌های دادهٔ باقی‌مانده
+        // اندازهٔ نوشته: بر پایهٔ تعداد دانش‌آموز؛ هرچه ستون کمتر، نوشته بزرگ‌تر
+        var fs = n > 40 ? 8 : n > 30 ? 9 : n > 22 ? 10 : 11, pad = n > 40 ? 2 : n > 30 ? 3 : 4;
+        if (kCols === 1) fs += 2; else if (kCols === 2) fs += 1;
+        if (n > 40) fs = Math.min(fs, 10);
+        var nameW = kCols === 1 ? 26 : kCols === 2 ? 22 : 19, dataW = kCols ? ((100 - 5 - nameW) / kCols).toFixed(2) : 0;
+        // رنگ نمرات: خیلی خوب سبز، خوب آبی، قابل قبول زرد، نیاز به تلاش قرمز
+        var LV = { 1: ['#059669', '#d1fae5'], 2: ['#2563eb', '#dbeafe'], 3: ['#a16207', '#fef08a'], 4: ['#dc2626', '#fee2e2'] };
+        var HWC = { done: ['#059669', '#d1fae5'], partial: ['#a16207', '#fef08a'], notdone: ['#dc2626', '#fee2e2'], '': ['#64748b', '#e2e8f0'] };
+        var chip = function(txt, c) { return '<span class="chip" style="color:' + c[0] + ';background:' + c[1] + ';border-color:' + c[0] + ';">' + txt + '</span>'; };
+
         var html = '<html><head><meta charset="UTF-8"><title>گزارش روزانهٔ کلاس</title><style>';
         html += '@page { size: A4 portrait; margin: 0.7cm 0.8cm 0.3cm 0.8cm; }';
+        html += '* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }';
         html += 'body { font-family: "Vazirmatn", "B Nazanin", "Tahoma", sans-serif; direction: rtl; margin: 0; }';
         html += '.h { text-align: center; font-weight: bold; font-size: 15pt; padding: 4px 0 6px 0; border-bottom: 1.5px solid #000; margin-bottom: 6px; }';
-        html += '.sub { text-align: center; font-size: 11pt; margin-bottom: 6px; }';
-        html += '.sum { margin: 6px 0; padding: 6px 8px; background: #f3f3f3; border-radius: 6px; font-size: ' + fs + 'pt; line-height: 1.9; }';
-        html += 'table { border-collapse: collapse; width: 100%; font-size: ' + fs + 'pt; margin-top: 6px; }';
+        html += '.sub { text-align: center; font-size: 11pt; margin-bottom: 8px; }';
+        html += '.abs { border: 2px solid #fca5a5; background: linear-gradient(135deg, #fff1f2, #ffe4e6); border-radius: 12px; padding: 8px 12px; margin: 6px 0; }';
+        html += '.abs.ok { border-color: #86efac; background: linear-gradient(135deg, #f0fdf4, #dcfce7); }';
+        html += '.abs-t { font-weight: bold; font-size: ' + (fs + 2) + 'pt; margin-bottom: 6px; }';
+        html += '.abs-f { font-size: ' + Math.max(8, fs - 1) + 'pt; color: #475569; margin-top: 6px; }';
+        html += '.chip { display: inline-block; border: 1px solid; border-radius: 999px; padding: 1px 9px; margin: 2px 2px; font-size: ' + Math.max(8, fs - 1) + 'pt; font-weight: 600; white-space: nowrap; }';
+        html += '.abs .chip { font-size: ' + fs + 'pt; padding: 3px 12px; }';
+        html += '.bar { margin: 6px 0; padding: 6px 10px; background: #f3f4f6; border-radius: 8px; font-size: ' + fs + 'pt; line-height: 1.9; }';
+        html += 'table { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: ' + fs + 'pt; margin-top: 8px; }';
         html += 'th, td { border: 1px solid #000; text-align: center; padding: ' + pad + 'px 3px; vertical-align: middle; }';
-        html += 'th { background: #e8e8e8; } td.name { text-align: right; padding-right: 6px; font-weight: 600; white-space: nowrap; }';
-        html += 'td.l { text-align: right; font-size: ' + Math.max(7, fs - 1) + 'pt; }';
+        html += 'th { background: #e8e8e8; } td.name { text-align: right; padding-right: 6px; font-weight: 600; word-break: break-word; }';
+        html += 'td.l { text-align: right; }';
         html += '</style></head><body>';
         html += '<div class="h">گزارش روزانهٔ کلاس ' + escapeHtml(cls.className) + '</div>';
         html += yearLine();
         html += '<div class="sub">' + escapeHtml(describeJalaliDate(date)) + '</div>';
 
-        html += '<div class="sum"><b>حضور و غیاب:</b> حاضر ' + toPersianNum(d.att.present) + ' | غایب موجه ' + toPersianNum(d.att.absentJ) +
-                ' | غایب غیرموجه ' + toPersianNum(d.att.absentU) + ' | تأخیر ' + toPersianNum(d.att.late) +
-                (d.attNone ? ' | ثبت‌نشده ' + toPersianNum(d.attNone) : '') + '</div>';
-        var subs = Object.keys(d.subjects);
-        html += '<div class="sum"><b>نمرات:</b> ';
-        if (!subs.length) html += 'نمره‌ای در این روز ثبت نشده است.';
-        else html += subs.map(function(sb) {
-            var i = d.subjects[sb];
-            return escapeHtml(sb) + ' (' + toPersianNum(i.count) + ' نفر: ' +
-                [1, 2, 3, 4].map(function(l) { return DESC_LEVELS[l].label + ' ' + toPersianNum(i.levels[l]); }).join('، ') + ')' +
-                (i.note ? ' — ' + escapeHtml(i.note) : '');
-        }).join('<br>');
-        html += '</div>';
-        html += '<div class="sum"><b>رفتار:</b> مثبت ' + toPersianNum(d.behPos) + ' | منفی ' + toPersianNum(d.behNeg) +
-                ' &nbsp;&nbsp;&nbsp; <b>تکالیف (موعد این روز):</b> ' +
-                (d.hwList.length ? d.hwList.map(function(h) { return escapeHtml((h.subject ? h.subject + ': ' : '') + (h.title || '')); }).join('، ') : 'تکلیفی ثبت نشده') + '</div>';
+        // ── غایبین (بالای صفحه) ──
+        var absent = d.rows.filter(function(r) { return r.att === 'absent_j' || r.att === 'absent_u'; });
+        var nm = function(r) { return escapeHtml(((r.s.family || '') + ' ' + (r.s.name || '')).trim()); };
+        var lateRows = d.rows.filter(function(r) { return r.att === 'late'; });
+        var foot = '<div class="abs-f">حاضر ' + toPersianNum(d.att.present) + ' • تأخیر ' + toPersianNum(d.att.late) + (d.attNone ? ' • ثبت‌نشده ' + toPersianNum(d.attNone) : '') + '</div>';
+        if (absent.length || lateRows.length) {
+            var ttl = absent.length ? '🚫 غایبین امروز (' + toPersianNum(absent.length) + ' نفر)' : '⏰ متأخرین امروز (' + toPersianNum(lateRows.length) + ' نفر)';
+            html += '<div class="abs"><div class="abs-t">' + ttl + '</div>' +
+                absent.map(function(r) { return chip(nm(r) + (r.att === 'absent_j' ? ' — موجه' : ' — غیرموجه'), r.att === 'absent_j' ? ['#2563eb', '#dbeafe'] : ['#dc2626', '#fee2e2']); }).join('') +
+                (absent.length && lateRows.length ? '<div class="abs-t" style="margin-top:8px;">⏰ متأخرین امروز (' + toPersianNum(lateRows.length) + ' نفر)</div>' : '') +
+                lateRows.map(function(r) { return chip(nm(r) + ' — تأخیر', ['#a16207', '#fef08a']); }).join('') + foot + '</div>';
+        } else if (d.attNone === d.rows.length) {
+            html += '<div class="abs"><div class="abs-t">🚫 غایبین امروز</div>حضور و غیاب این روز ثبت نشده است.</div>';
+        } else {
+            html += '<div class="abs ok"><div class="abs-t">✅ امروز غایبی نداشتیم</div>' + foot + '</div>';
+        }
 
-        html += '<table><thead><tr><th style="width:26px;">#</th><th>نام و نام خانوادگی</th><th>حضور</th><th>نمرات</th><th>رفتار</th><th>تکالیف</th></tr></thead><tbody>';
-        d.rows.forEach(function(r, i) {
-            html += '<tr><td>' + toPersianNum(i + 1) + '</td>';
-            html += '<td class="name">' + escapeHtml((r.s.family || '') + ' ' + (r.s.name || '')) + '</td>';
-            html += '<td>' + (r.att ? ATT_STATUS_FA[r.att] || '' : '—') + '</td>';
-            html += '<td class="l">' + (r.grades.length ? r.grades.map(function(g) { return escapeHtml(g.subject) + ': ' + DESC_LEVELS[g.level].label; }).join('<br>') : '—') + '</td>';
-            html += '<td class="l">' + (r.beh.length ? r.beh.map(function(b) { return (b.type === 'positive' ? '＋ ' : '－ ') + escapeHtml(b.reason || (b.type === 'positive' ? 'مثبت' : 'منفی')); }).join('<br>') : '—') + '</td>';
-            html += '<td class="l">' + (r.hw.length ? r.hw.map(function(h) { return escapeHtml(h.title) + ': ' + (HW_STATUS_FA[h.status] || '—'); }).join('<br>') : '—') + '</td></tr>';
-        });
-        html += '</tbody></table></body></html>';
+        // ── تکالیف ──
+        html += '<div class="bar"><b>📖 تکالیف:</b> ' + (hasHw
+            ? d.hwList.map(function(h) { return escapeHtml((h.subject ? h.subject + ': ' : '') + (h.title || '')); }).join('، ')
+            : 'تکلیفی ثبت نشده') + '</div>';
+
+        // ── خلاصهٔ نمرات (فقط اگر ثبت شده) ──
+        var subs = Object.keys(d.subjects);
+        if (subs.length) {
+            html += '<div class="bar"><b>📝 نمرات:</b><br>' + subs.map(function(sb) {
+                var i = d.subjects[sb];
+                return escapeHtml(sb) + ' (' + toPersianNum(i.count) + ' نفر) ' +
+                    [1, 2, 3, 4].map(function(l) { return i.levels[l] ? chip(DESC_LEVELS[l].label + ' ' + toPersianNum(i.levels[l]), LV[l]) : ''; }).join('') +
+                    (i.note ? ' — ' + escapeHtml(i.note) : '');
+            }).join('<br>') + '</div>';
+        }
+        if (d.behPos || d.behNeg) {
+            html += '<div class="bar"><b>🎯 رفتار:</b> ' + chip('مثبت ' + toPersianNum(d.behPos), ['#059669', '#d1fae5']) + chip('منفی ' + toPersianNum(d.behNeg), ['#dc2626', '#fee2e2']) + '</div>';
+        }
+
+        // ── جدول: فقط ستون‌هایی که آن روز دادهٔ ثبت‌شده دارند ──
+        if (hasGrades || hasBeh || hasHw) {
+            html += '<table><thead><tr><th style="width:5%;">#</th><th style="width:' + nameW + '%;">نام و نام خانوادگی</th>' +
+                (hasGrades ? '<th style="width:' + dataW + '%;">نمرات</th>' : '') + (hasBeh ? '<th style="width:' + dataW + '%;">رفتار</th>' : '') + (hasHw ? '<th style="width:' + dataW + '%;">تکالیف</th>' : '') + '</tr></thead><tbody>';
+            d.rows.forEach(function(r, i) {
+                html += '<tr><td>' + toPersianNum(i + 1) + '</td><td class="name">' + nm(r) + '</td>';
+                if (hasGrades) html += '<td class="l">' + (r.grades.length ? r.grades.map(function(g) { return chip(escapeHtml(g.subject) + ': ' + DESC_LEVELS[g.level].label, LV[g.level]); }).join('') : '—') + '</td>';
+                if (hasBeh) html += '<td class="l">' + (r.beh.length ? r.beh.map(function(b) { return chip((b.type === 'positive' ? '＋ ' : '－ ') + escapeHtml(b.reason || (b.type === 'positive' ? 'مثبت' : 'منفی')), b.type === 'positive' ? ['#059669', '#d1fae5'] : ['#dc2626', '#fee2e2']); }).join('') : '—') + '</td>';
+                if (hasHw) html += '<td class="l">' + (r.hw.length ? r.hw.map(function(h) { return chip(escapeHtml(h.title) + ': ' + (HW_STATUS_FA[h.status] || 'ثبت‌نشده'), HWC[h.status] || HWC['']); }).join('') : '—') + '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+        } else {
+            html += '<div class="bar" style="text-align:center;">در این روز نمره، رفتار یا تکلیفی ثبت نشده است.</div>';
+        }
+        html += '</body></html>';
         return html;
     }
 
@@ -7939,7 +8052,7 @@ var CMPDF = (function(){
         document.getElementById('btnDrToday').addEventListener('click', function() { go(getTodayJalaliStr()); });
         attachJalaliPicker('drDate');
         document.getElementById('drDate').addEventListener('change', function() { var n = normalizeDate(this.value); if (n) go(n); });
-        document.getElementById('btnDrView').addEventListener('click', function() { openPrintWindow(buildDailyReportHtml(cls, dailyReportDate)); });
+        document.getElementById('btnDrView').addEventListener('click', function() { openPrintWindow(buildDailyReportHtml(cls, dailyReportDate), { imageName: 'گزارش روزانه ' + cls.className + ' ' + dailyReportDate.replace(/\//g, '-') }); });
     }
 
     // ===== رویدادها =====
@@ -8284,6 +8397,17 @@ var CMPDF = (function(){
         document.getElementById('brSub').textContent = sub;
         b.style.display = 'block';
         fitBackupBanner();
+        // هشدار صفحهٔ اول: در صفحهٔ اصلی، یک‌بار در هر نشست، پنجرهٔ هشدار هم باز می‌شود
+        try {
+            var wm = document.getElementById('modalBackupWarn');
+            if (wm && currentPageName === 'home' && !sessionStorage.getItem('cmbk_warn')) {
+                sessionStorage.setItem('cmbk_warn', '1');
+                document.getElementById('bwTitle').textContent = title;
+                document.getElementById('bwSub').textContent = sub;
+                wm.classList.toggle('danger', b.classList.contains('danger'));
+                wm.classList.add('open');
+            }
+        } catch(e) {}
     }
 
     function hideBackupBanner() {
@@ -8359,6 +8483,13 @@ var CMPDF = (function(){
         });
         var btnNow = document.getElementById('btnBackupNow');
         if (btnNow) btnNow.addEventListener('click', downloadBackupNow);
+        var bwDl = document.getElementById('btnBackupWarnDownload');
+        if (bwDl) bwDl.addEventListener('click', function() { closeModal('modalBackupWarn'); downloadBackupNow(); });
+        var bwLater = document.getElementById('btnBackupWarnLater');
+        if (bwLater) bwLater.addEventListener('click', function() {
+            localStorage.setItem(BACKUP_KEYS.snoozeUntil, String(Date.now() + 2 * 3600 * 1000));
+            hideBackupBanner(); closeModal('modalBackupWarn');
+        });
 
         var en = document.getElementById('setBackupReminderEnabled');
         if (en) en.addEventListener('change', function() {
@@ -8676,7 +8807,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.11';
+    var APP_VERSION = '4.6.12';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -8715,6 +8846,18 @@ var CMPDF = (function(){
         if (bi) bi.disabled = false; if (bc) bc.disabled = false;
         m.classList.add('open');
     }
+    // اعلان نسخهٔ جدید در صفحهٔ اول؛ «تأیید» کاربر را به بخش به‌روزرسانی در تنظیمات می‌برد
+    function showHomeUpdateNotice() {
+        var pu = pendingUpdate, el = document.getElementById('homeUpdateNotice');
+        if (!pu || !el || DEMO_MODE) return;
+        try {
+            var sn = String(realLS.getItem('cmupd_snooze') || '').split('|');
+            if (sn[0] === pu.version && Date.now() - Number(sn[1] || 0) < 12 * 3600 * 1000) return;
+        } catch(e) {}
+        var fa = function(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); };
+        document.getElementById('homeUpdateText').innerHTML = '🎉 نسخهٔ جدید <b>' + escapeHtml(fa(pu.version)) + '</b> منتشر شده است. برای مشاهدهٔ تغییرات و به‌روزرسانی، تأیید را بزنید.';
+        el.style.display = '';
+    }
     function readUpdInputs() { return updCfg(); }
     function rawUrl(cfg, path) {
         return 'https://raw.githubusercontent.com/' + cfg.repo + '/' + encodeURI(cfg.branch) + '/' + path;
@@ -8742,7 +8885,7 @@ var CMPDF = (function(){
             updMsg('🎉 نسخهٔ جدید <b>' + escapeHtml(j.version) + '</b> آماده است (نسخهٔ شما: ' + escapeHtml(APP_VERSION) + ').' +
                 (notes.length ? '<ul style="margin:6px 18px 0;padding:0;line-height:1.9;">' + notes.map(function(n) { return '<li>' + escapeHtml(String(n)) + '</li>'; }).join('') + '</ul>' : ''), 'ok');
             btnI.style.display = '';
-            showUpdateModal(!!auto);
+            if (auto) showHomeUpdateNotice(); else showUpdateModal(false);
         }).catch(function(e) {
             if (auto) return;   // بررسی خودکار: خطا را به کاربر نشان نده
             updMsg('❌ ' + (e && e.message ? (e.name === 'TypeError' ? 'اتصال به اینترنت برقرار نشد.' : e.message) : 'خطا'), 'bad');
@@ -8817,6 +8960,17 @@ var CMPDF = (function(){
         var fl = document.getElementById('appVersionLabel'); if (fl) fl.textContent = fa(APP_VERSION);
         var bc = document.getElementById('btnUpdCheck'); if (bc) bc.addEventListener('click', function() { checkUpdate(false); });
         var bi = document.getElementById('btnUpdInstall'); if (bi) bi.addEventListener('click', function() { installUpdate(false); });
+        var hok = document.getElementById('btnHomeUpdOk'), hlt = document.getElementById('btnHomeUpdLater'), hn = document.getElementById('homeUpdateNotice');
+        if (hok) hok.addEventListener('click', function() {
+            if (hn) hn.style.display = 'none';
+            showPage('settings');
+            var c = document.getElementById('btnUpdCheck'), card = c && c.closest('.settings-card');
+            if (card) setTimeout(function() { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+        });
+        if (hlt) hlt.addEventListener('click', function() {
+            try { if (pendingUpdate) realLS.setItem('cmupd_snooze', pendingUpdate.version + '|' + Date.now()); } catch(e) {}
+            if (hn) hn.style.display = 'none';
+        });
         var mi = document.getElementById('btnUpdModalInstall'); if (mi) mi.addEventListener('click', function() { installUpdate(true); });
         var mc = document.getElementById('btnUpdModalCancel');
         if (mc) mc.addEventListener('click', function() {

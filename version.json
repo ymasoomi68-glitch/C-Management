@@ -1,7 +1,9 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.11",
-  "notes": ["ایجاد یادآوری پشتیبان‌گیری", "مشاهدهٔ نمرات همهٔ دروس با کلیک روی نام دانش‌آموز"],
+  "version": "4.6.12",
+  "notes": [
+    "Add backup reminder and student grades history"
+  ],
   "files": [
     "index.html",
     "sw.js",
@@ -13,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "82fbcee55c920c5ae9990e720a2029ecd9ff286467614ef6dfa0848a73ed5000",
-    "sw.js": "3e176a3c32aa184d41c6a362de031a4d9015764ab45083353a3f5575a8bb8230",
+    "index.html": "825b1020b0e6a55a6ad0e019c9b44caa002bf0b76c9425a180b80b74dcf58eda",
+    "sw.js": "71e6156c38c37336b9ef6f1ba5cf4602578aedc5b8e21db4e938e6e997919e10",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
