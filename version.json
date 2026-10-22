@@ -1,9 +1,7 @@
 {
   "app": "cmc-class-manager",
   "version": "4.6.11",
-  "notes": [
-    "Add smart backup reminder + student grades history"
-  ],
+  "notes": ["ایجاد یادآوری پشتیبان‌گیری", "مشاهدهٔ نمرات همهٔ دروس با کلیک روی نام دانش‌آموز"],
   "files": [
     "index.html",
     "sw.js",
