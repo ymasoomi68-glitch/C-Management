@@ -389,6 +389,14 @@ window.CMStore = (function(){
         text-overflow: ellipsis; white-space: nowrap;
     }
     .gr-count { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 46px; padding: 3px 8px; border-radius: 10px; background: var(--primary-light); color: var(--primary-dark); line-height: 1.2; flex-shrink: 0; }
+    .gr-name, .gr-count { cursor: pointer; }
+    .gr-name:hover { color: var(--primary); }
+    #modalStudentGrades .sg-subj { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+    #modalStudentGrades .sg-subj.cur { border-color: var(--primary); }
+    #modalStudentGrades .sg-head { display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg); font-weight: 700; font-size: 14px; }
+    #modalStudentGrades .sg-head span { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    #modalStudentGrades .sg-row { display: flex; justify-content: space-between; padding: 7px 12px; border-top: 1px solid var(--border); font-size: 13px; }
+    #modalStudentGrades .sg-row small { color: var(--text-muted); }
     .gr-count b { font-size: 15px; }
     .gr-count span { font-size: 10px; font-weight: 600; }
     .att-code { font-size: 11px; color: var(--text-muted); font-family: monospace; direction: ltr; margin-top: 2px; }
@@ -639,6 +647,40 @@ window.CMStore = (function(){
     #printViewer .pv-scroll { flex: 1; overflow: auto; padding: 12px 8px 30px; -webkit-overflow-scrolling: touch; }
     #printViewer .pv-wrap { margin: 0 auto; position: relative; }
     #printViewer .pv-frame { position: absolute; top: 0; left: 0; border: 0; background: #fff; transform-origin: top left; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+
+    /* ═══ بنر یادآوری پشتیبان‌گیری ═══ */ /* [backup-reminder] */
+    #backupReminderBanner {
+        position: sticky; top: 60px; z-index: 97;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff;
+        padding: 12px 16px; box-shadow: 0 4px 12px rgba(37,99,235,0.3); transition: all 0.3s;
+    }
+    #backupReminderBanner.warning { background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 4px 12px rgba(245,158,11,0.35); }
+    #backupReminderBanner.danger { background: linear-gradient(135deg, #dc2626, #b91c1c); box-shadow: 0 4px 12px rgba(220,38,38,0.4); animation: dangerPulse 2s ease-in-out infinite; }
+    @keyframes dangerPulse { 0%, 100% { box-shadow: 0 4px 12px rgba(220,38,38,0.4); } 50% { box-shadow: 0 4px 24px rgba(220,38,38,0.7); } }
+    #backupReminderBanner .br-content { display: flex; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto; }
+    #backupReminderBanner .br-icon { font-size: 28px; flex-shrink: 0; }
+    #backupReminderBanner .br-text { flex: 1; min-width: 0; }
+    #backupReminderBanner .br-title { font-weight: 800; font-size: 14px; margin-bottom: 2px; }
+    #backupReminderBanner .br-sub { font-size: 12px; opacity: 0.95; }
+    #backupReminderBanner .br-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    #backupReminderBanner .br-actions .btn { white-space: nowrap; }
+    #backupReminderBanner .btn-primary { background: #fff; color: #1d4ed8; font-weight: 700; border: none; }
+    #backupReminderBanner.warning .btn-primary { color: #ea580c; }
+    #backupReminderBanner.danger .btn-primary { color: #dc2626; }
+    #backupReminderBanner .btn-primary:hover { background: #f0f9ff; transform: translateY(-1px); }
+    #backupReminderBanner .btn-outline { background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; }
+    #backupReminderBanner .btn-outline:hover { background: rgba(255,255,255,0.25); }
+    @media (max-width: 600px) {
+        #backupReminderBanner { padding: 10px 12px; top: 56px; }
+        #backupReminderBanner .br-content { flex-wrap: wrap; gap: 8px; }
+        #backupReminderBanner .br-icon { font-size: 24px; }
+        #backupReminderBanner .br-actions { width: 100%; }
+        #backupReminderBanner .br-actions .btn { flex: 1; padding: 8px 10px; font-size: 12px; }
+    }
+    /* اگر بنر دمو فعال است، بنر پشتیبان زیر آن قرار می‌گیرد */
+    body.demo-mode #backupReminderBanner { top: var(--demo-top, 120px); }
+    /* [backup-reminder] سایدبار هم چسبان است؛ تا بنر پشتیبان روی آن نیفتد، با ارتفاع بنر پایین می‌آید */
+    body.backup-banner-on .sidebar { top: calc(60px + var(--bk-h, 0px)); height: calc(100vh - 60px - var(--bk-h, 0px)); }
 
     /* === افزودنی‌های CSS قدم‌های بعدی اینجا === */
 
@@ -1483,6 +1525,21 @@ window.CMStore = (function(){
     </div>
 </header>
 
+<!-- [backup-reminder] بنر یادآوری پشتیبان‌گیری -->
+<div id="backupReminderBanner" style="display:none;">
+    <div class="br-content">
+        <div class="br-icon">📥</div>
+        <div class="br-text">
+            <div class="br-title" id="brTitle">وقت پشتیبان‌گیری است!</div>
+            <div class="br-sub" id="brSub">از داده‌هایت پشتیبان نگرفته‌ای.</div>
+        </div>
+        <div class="br-actions">
+            <button class="btn btn-primary btn-sm" id="btnBackupDownloadNow">📥 دانلود پشتیبان</button>
+            <button class="btn btn-outline btn-sm" id="btnBackupSnooze">⏰ بعداً</button>
+        </div>
+    </div>
+</div>
+
 <div class="layout">
 
     <!-- ═══════════════════════════════════════════════════
@@ -2024,6 +2081,45 @@ window.CMStore = (function(){
                     <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
                 </div>
 
+                <!-- کارت: یادآوری پشتیبان‌گیری [backup-reminder] -->
+                <div class="settings-card" id="backupReminderCard">
+                    <div class="settings-card-title">📥 یادآوری پشتیبان‌گیری</div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.7;">
+                        اپ هر چند وقت یک‌بار یادآوری می‌کند که از داده‌هایت پشتیبان بگیری.
+                        (این یادآوری فقط در حافظه دستگاه فعال است و اطلاعاتی به اینترنت ارسال نمی‌شود.)
+                    </p>
+                    <div class="settings-item">
+                        <span class="settings-item-label">یادآوری</span>
+                        <label class="switch" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="setBackupReminderEnabled" style="width:18px;height:18px;cursor:pointer;">
+                            <span style="font-size:13px;">فعال</span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-item-label">هر چند وقت؟</span>
+                        <select class="form-select" id="setBackupReminderFreq" style="max-width:120px;">
+                            <option value="1">هر روز</option>
+                            <option value="3" selected>هر ۳ روز</option>
+                            <option value="7">هر هفته</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-item-label">ساعت یادآوری</span>
+                        <select class="form-select" id="setBackupReminderHour" style="max-width:110px;">
+                            <option value="9">۹ صبح</option>
+                            <option value="12">۱۲ ظهر</option>
+                            <option value="15">۳ بعدازظهر</option>
+                            <option value="18">۶ عصر</option>
+                            <option value="21" selected>۹ شب</option>
+                            <option value="23">۱۱ شب</option>
+                        </select>
+                    </div>
+                    <div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:8px;font-size:12px;line-height:1.8;">
+                        📅 آخرین پشتیبان: <b id="lastBackupInfo">—</b>
+                    </div>
+                    <button class="btn btn-success" id="btnBackupNow" style="width:100%;margin-top:12px;">📥 دانلود پشتیبان الان</button>
+                </div>
+
                 <!-- کارت ۳: آمار کلی -->
                 <div class="settings-card">
                     <div class="settings-card-title">📊 آمار کلی</div>
@@ -2118,7 +2214,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۰</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۱</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2266,6 +2362,15 @@ window.CMStore = (function(){
             <button class="btn btn-outline" data-close-modal="modalSubject">انصراف</button>
             <button class="btn btn-primary" id="btnSaveSubject">💾 ذخیره</button>
         </div>
+    </div>
+</div>
+
+<!-- مودال نمره‌های ثبت‌شدهٔ دانش‌آموز -->
+<div class="modal-overlay" id="modalStudentGrades">
+    <div class="modal" style="max-width:460px;">
+        <h2 class="modal-title" id="sgTitle"></h2>
+        <div id="sgBody" style="max-height:60vh;overflow:auto;"></div>
+        <div class="modal-actions"><button class="btn btn-outline" data-close-modal="modalStudentGrades">بستن</button></div>
     </div>
 </div>
 
@@ -5190,6 +5295,40 @@ var CMPDF = (function(){
         return n;
     }
 
+    // صفحهٔ نمره‌های ثبت‌شدهٔ یک دانش‌آموز: نام درس + تاریخ ثبت + نمره (درس انتخاب‌شده اول)
+    function showStudentGrades(cls, student) {
+        var prefix = cls.className + '|', bySubj = {};
+        Object.keys(gradesData).forEach(function(key) {
+            if (key.indexOf(prefix) !== 0) return;
+            var parts = key.substring(prefix.length).split('|');
+            if (parts.length !== 2) return;
+            var v = gradesData[key] && gradesData[key][student.id];
+            if (v === undefined || v === null || v === '') return;
+            (bySubj[parts[0]] = bySubj[parts[0]] || []).push({ date: parts[1], level: parseInt(v), note: gradeNotes[key] || '' });
+        });
+        var subs = Object.keys(bySubj).sort(function(a, b) {
+            if (a === currentSubject) return -1; if (b === currentSubject) return 1;
+            var ia = subjectsList.indexOf(a), ib = subjectsList.indexOf(b);
+            return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+        });
+        var html = '';
+        if (!subs.length) html = '<div class="no-result">هنوز نمره‌ای برای این دانش‌آموز ثبت نشده است.</div>';
+        subs.forEach(function(sb) {
+            var list = bySubj[sb].sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+            html += '<div class="sg-subj' + (sb === currentSubject ? ' cur' : '') + '"><div class="sg-head">' + getSubjectIcon(sb) + ' ' + escapeHtml(sb) +
+                '<span>' + toPersianNum(list.length) + ' نمره</span></div>';
+            list.forEach(function(r) {
+                var L = DESC_LEVELS[r.level] || { label: '—', color: '#64748b' };
+                html += '<div class="sg-row"><span>' + escapeHtml(fmtFullDate(r.date)) + (r.note ? ' <small>— ' + escapeHtml(r.note) + '</small>' : '') + '</span>' +
+                    '<b style="color:' + L.color + ';">' + L.label + '</b></div>';
+            });
+            html += '</div>';
+        });
+        document.getElementById('sgTitle').textContent = '📝 ' + ((student.family || '') + ' ' + (student.name || '')).trim();
+        document.getElementById('sgBody').innerHTML = html;
+        document.getElementById('modalStudentGrades').classList.add('open');
+    }
+
     function renderGrades() {
         var container = document.getElementById('gradesContainer');
         var dash = document.getElementById('gradeDashboard');
@@ -5239,7 +5378,7 @@ var CMPDF = (function(){
 
             html += '<div class="desc-row" data-sid="' + s.id + '">';
             html += '<div class="att-num">' + toPersianNum(i + 1) + '</div>';
-            html += '<div class="att-name">';
+            html += '<div class="att-name gr-name" title="نمایش نمره‌های ثبت‌شده">';
             html += '<div>' + escapeHtml((s.family || '') + ' ' + (s.name || '')) + '</div>';
             html += '</div>';
             html += '<div class="gr-count" title="تعداد نمره‌های این درس"><b>' + toPersianNum(countStudentGrades(cls, s.id, currentSubject)) + '</b><span>نمره</span></div>';
@@ -5261,6 +5400,14 @@ var CMPDF = (function(){
                 saveGradeNotes();
             });
         }
+
+        container.querySelectorAll('.gr-name, .gr-count').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var sid0 = el.closest('.desc-row').getAttribute('data-sid');
+                var st = students.filter(function(x) { return x.id === sid0; })[0];
+                if (st) showStudentGrades(cls, st);
+            });
+        });
 
         container.querySelectorAll('.desc-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -8014,10 +8161,224 @@ var CMPDF = (function(){
         document.body.removeChild(link);
         setTimeout(function() { URL.revokeObjectURL(link.href); }, 1000);
 
+        markBackupDone();   // [backup-reminder] ثبت تاریخ پشتیبان برای سیستم یادآوری
+
         var self = this, orig = self.textContent;
         self.textContent = '✅ دانلود شد';
         setTimeout(function() { self.textContent = orig; }, 1500);
     });
+
+    /* ═══════════════════════════════════════════════════
+       📥 یادآوری هوشمند پشتیبان‌گیری  [backup-reminder]
+       ═══════════════════════════════════════════════════ */
+    var BACKUP_KEYS = {
+        enabled: 'cmc_backup_reminder_enabled',     // '1' یا '0'
+        freq: 'cmc_backup_reminder_freq',           // '1', '3', '7'
+        hour: 'cmc_backup_reminder_hour',           // '9', '12', ... '23'
+        lastBackupDate: 'cmc_last_backup_date',     // '1405/07/25'
+        lastBackupTs: 'cmc_last_backup_ts',         // timestamp
+        snoozeUntil: 'cmc_backup_snooze_until'      // timestamp
+    };
+
+    function getBackupSettings() {
+        var en = localStorage.getItem(BACKUP_KEYS.enabled);
+        var enabled = (en === null) ? true : (en === '1');   // پیش‌فرض: فعال
+        return {
+            enabled: enabled,
+            freq: parseInt(localStorage.getItem(BACKUP_KEYS.freq) || '3', 10),
+            hour: parseInt(localStorage.getItem(BACKUP_KEYS.hour) || '21', 10)
+        };
+    }
+
+    function saveBackupSettings(s) {
+        localStorage.setItem(BACKUP_KEYS.enabled, s.enabled ? '1' : '0');
+        localStorage.setItem(BACKUP_KEYS.freq, String(s.freq));
+        localStorage.setItem(BACKUP_KEYS.hour, String(s.hour));
+    }
+
+    // چند روز از آخرین پشتیبان گذشته؟ (۹۹۹ = هرگز)
+    function daysSinceLastBackup() {
+        var last = localStorage.getItem(BACKUP_KEYS.lastBackupDate);
+        if (!last) return 999;
+        var d = jalaliStrToDate(last);
+        if (!d) return 999;
+        d.setHours(0, 0, 0, 0);
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        return Math.max(0, Math.round((today - d) / (1000 * 60 * 60 * 24)));   // [backup-reminder] round: جلوگیری از خطای تغییر ساعت تابستانی
+    }
+
+    // ثبت انجام پشتیبان (مشترک بین همهٔ دکمه‌های دانلود پشتیبان)
+    function markBackupDone() {
+        try {
+            localStorage.setItem(BACKUP_KEYS.lastBackupDate, getTodayJalaliStr());
+            localStorage.setItem(BACKUP_KEYS.lastBackupTs, String(Date.now()));
+            localStorage.removeItem(BACKUP_KEYS.snoozeUntil);
+            hideBackupBanner();
+            updateLastBackupInfo();
+            updateBackupCardUI();
+        } catch(e) {}
+    }
+
+    // دانلود پشتیبان (مشترک با دکمهٔ تنظیمات و بنر) — بدون هیچ تأیید اضافی
+    function downloadBackupNow() {
+        var backup = {
+            version: '1.1',
+            academicYear: yearsState.current,
+            exportDate: new Date().toISOString(),
+            exportDateJalali: getTodayJalaliStr(),
+            appData: appData,
+            attendanceData: attendanceData,
+            gradesData: gradesData,
+            behaviorsData: behaviorsData,
+            homeworkData: homeworkData,
+            subjectsList: subjectsList,
+            gradeNotes: gradeNotes,
+            customReasons: customReasons,
+            appSettings: appSettings
+        };
+        var dataStr = JSON.stringify(backup, null, 2);
+        var blob = new Blob(['﻿' + dataStr], { type: 'application/json;charset=utf-8' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'class_manager_backup_' + getTodayJalaliStr().replace(/\//g, '-') + '.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(function() { URL.revokeObjectURL(link.href); }, 1000);
+        markBackupDone();
+    }
+
+    // ارتفاع بنر را به سایدبار می‌دهیم تا زیر بنر بماند
+    function fitBackupBanner() {
+        var b = document.getElementById('backupReminderBanner');
+        var on = !!(b && b.style.display !== 'none');
+        document.body.classList.toggle('backup-banner-on', on);
+        document.documentElement.style.setProperty('--bk-h', (on ? b.offsetHeight : 0) + 'px');
+    }
+
+    function showBackupBanner() {
+        var b = document.getElementById('backupReminderBanner');
+        if (!b) return;
+        var days = daysSinceLastBackup();
+        var title = '📥 وقت پشتیبان‌گیری است!';
+        var sub = 'از داده‌هایت پشتیبان نگرفته‌ای. با یک کلیک فایل پشتیبان دانلود می‌شود.';
+        b.classList.remove('warning', 'danger');
+
+        if (days >= 999) {                       // هرگز پشتیبان نگرفته
+            b.classList.add('danger');
+            title = '🚨 هنوز پشتیبان نگرفته‌ای!';
+            sub = 'خطر از دست رفتن داده‌ها! همین حالا پشتیبان بگیر.';
+        } else if (days >= 7) {
+            b.classList.add('danger');
+            title = '🚨 ' + toPersianNum(days) + ' روز است پشتیبان نگرفته‌ای!';
+            sub = 'خطر از دست رفتن داده‌ها! همین حالا پشتیبان بگیر.';
+        } else if (days >= 4) {
+            b.classList.add('warning');
+            title = '⚠️ ' + toPersianNum(days) + ' روز است پشتیبان نگرفته‌ای';
+            sub = 'برای امنیت داده‌هایت، همین حالا پشتیبان بگیر.';
+        } else {                                 // ۱ تا ۳ روز (بسته به تکرار انتخاب‌شده)
+            title = '📥 وقت پشتیبان‌گیری است!';
+            sub = toPersianNum(days) + ' روز از آخرین پشتیبان گذشته. با یک کلیک دانلود کن.';
+        }
+        document.getElementById('brTitle').textContent = title;
+        document.getElementById('brSub').textContent = sub;
+        b.style.display = 'block';
+        fitBackupBanner();
+    }
+
+    function hideBackupBanner() {
+        var b = document.getElementById('backupReminderBanner');
+        if (b) b.style.display = 'none';
+        fitBackupBanner();
+    }
+
+    function faDigits(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); }
+
+    function updateLastBackupInfo() {
+        var el = document.getElementById('lastBackupInfo');
+        if (!el) return;
+        var date = localStorage.getItem(BACKUP_KEYS.lastBackupDate);
+        var ts = localStorage.getItem(BACKUP_KEYS.lastBackupTs);
+        if (!date) {
+            el.textContent = 'هنوز پشتیبانی نگرفته‌ای';
+            el.style.color = '#f59e0b';
+            return;
+        }
+        var timeStr = '';
+        if (ts) {
+            try {
+                var d = new Date(parseInt(ts, 10));
+                timeStr = ' - ' + faDigits(pad2(d.getHours()) + ':' + pad2(d.getMinutes()));   // [backup-reminder] pad قبل از تبدیل به ارقام فارسی
+            } catch(e) {}
+        }
+        el.textContent = faDigits(date) + timeStr;
+        el.style.color = '';
+    }
+
+    function updateBackupCardUI() {
+        var s = getBackupSettings();
+        var en = document.getElementById('setBackupReminderEnabled');
+        var freq = document.getElementById('setBackupReminderFreq');
+        var hour = document.getElementById('setBackupReminderHour');
+        if (en) en.checked = s.enabled;
+        if (freq) { freq.value = String(s.freq); freq.disabled = !s.enabled; }
+        if (hour) { hour.value = String(s.hour); hour.disabled = !s.enabled; }
+        updateLastBackupInfo();
+    }
+
+    function checkBackupReminder() {
+        if (window.__CM_DEMO === true || DEMO_MODE) return;
+        var s = getBackupSettings();
+        if (!s.enabled) { hideBackupBanner(); return; }
+        if (daysSinceLastBackup() < s.freq) { hideBackupBanner(); return; }
+        if (new Date().getHours() < s.hour) { hideBackupBanner(); return; }
+        var snooze = parseInt(localStorage.getItem(BACKUP_KEYS.snoozeUntil) || '0', 10);
+        if (Date.now() < snooze) { hideBackupBanner(); return; }
+        showBackupBanner();
+    }
+
+    function initBackupReminder() {
+        if (window.__CM_DEMO === true || DEMO_MODE) {   // دمو: کاملاً غیرفعال (کارت هم پنهان)
+            var card = document.getElementById('backupReminderCard');
+            if (card) card.style.display = 'none';
+            return;
+        }
+        if (localStorage.getItem(BACKUP_KEYS.enabled) === null) {
+            localStorage.setItem(BACKUP_KEYS.enabled, '1');
+            localStorage.setItem(BACKUP_KEYS.freq, '3');
+            localStorage.setItem(BACKUP_KEYS.hour, '21');
+        }
+        updateBackupCardUI();
+
+        var btnDl = document.getElementById('btnBackupDownloadNow');
+        if (btnDl) btnDl.addEventListener('click', downloadBackupNow);
+        var btnSnooze = document.getElementById('btnBackupSnooze');
+        if (btnSnooze) btnSnooze.addEventListener('click', function() {
+            localStorage.setItem(BACKUP_KEYS.snoozeUntil, String(Date.now() + 2 * 3600 * 1000));   // ۲ ساعت بعد
+            hideBackupBanner();
+        });
+        var btnNow = document.getElementById('btnBackupNow');
+        if (btnNow) btnNow.addEventListener('click', downloadBackupNow);
+
+        var en = document.getElementById('setBackupReminderEnabled');
+        if (en) en.addEventListener('change', function() {
+            var s = getBackupSettings(); s.enabled = this.checked; saveBackupSettings(s);
+            updateBackupCardUI();
+            if (!s.enabled) hideBackupBanner(); else checkBackupReminder();
+        });
+        var freq = document.getElementById('setBackupReminderFreq');
+        if (freq) freq.addEventListener('change', function() {
+            var s = getBackupSettings(); s.freq = parseInt(this.value, 10); saveBackupSettings(s); checkBackupReminder();
+        });
+        var hour = document.getElementById('setBackupReminderHour');
+        if (hour) hour.addEventListener('change', function() {
+            var s = getBackupSettings(); s.hour = parseInt(this.value, 10); saveBackupSettings(s); checkBackupReminder();
+        });
+
+        window.addEventListener('resize', fitBackupBanner);
+        setTimeout(checkBackupReminder, 3000);
+        setInterval(checkBackupReminder, 5 * 60 * 1000);
+    }
 
     // ===== بازیابی از پشتیبان =====
     document.getElementById('btnRestoreBackup').addEventListener('click', function() {
@@ -8315,7 +8676,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.10';
+    var APP_VERSION = '4.6.11';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -8656,6 +9017,7 @@ var CMPDF = (function(){
     loadHomework();
     loadSettings();
     applyFontSize(appSettings.fontSize);
+    initBackupReminder();   // [backup-reminder]
 
     try {
         var savedTheme = localStorage.getItem('cmc_theme');

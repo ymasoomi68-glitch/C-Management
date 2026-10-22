@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.10",
+  "version": "4.6.11",
   "notes": [
-    "Fix grade count per subject"
+    "Add smart backup reminder + student grades history"
   ],
   "files": [
     "index.html",
@@ -15,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "6bce94f7b62a32c8a92e3cdb13e7b1616ae1c049912bfe619b57e6e885d6a4b0",
-    "sw.js": "918b354d8ef591c0dfebaffc7052ccd5aee9e0d7c40f0805a24026465324e285",
+    "index.html": "82fbcee55c920c5ae9990e720a2029ecd9ff286467614ef6dfa0848a73ed5000",
+    "sw.js": "3e176a3c32aa184d41c6a362de031a4d9015764ab45083353a3f5575a8bb8230",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
