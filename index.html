@@ -1600,7 +1600,8 @@ window.CMStore = (function(){
                 <span class="hh-blob hb1"></span><span class="hh-blob hb2"></span>
                 <div class="hh-text">
                     <div class="hh-date" id="homeDate"></div>
-                    <h1 id="homeGreet">سلام 👋<
+                    <h1 id="homeGreet">سلام 👋</h1>
+                    <p>امروز کدام بخش را باز کنیم؟</p>
                 </div>
                 <svg class="hh-art" viewBox="0 0 160 130" aria-hidden="true" fill="none">
                     <rect x="22" y="30" width="96" height="76" rx="12" fill="#fff" opacity=".95"/>
@@ -2219,7 +2220,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۶</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۷</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -8820,7 +8821,7 @@ function applyDemoReportLocks() {
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.16';
+    var APP_VERSION = '4.6.17';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -8955,7 +8956,12 @@ function applyDemoReportLocks() {
         var bi = document.getElementById('btnUpdInstall'); if (bi) bi.addEventListener('click', function() { confirmUpdate(); });  // [update-confirm]
         var hok = document.getElementById('btnHomeUpdOk'), hlt = document.getElementById('btnHomeUpdLater'), hn = document.getElementById('homeUpdateNotice');
         // [update-confirm] «تأیید» → فعال‌سازی نسخهٔ جدید؛ «بعداً» → پنهان‌شدن اعلان تا ۱۲ ساعت
-        if (hok) hok.addEventListener('click', function() { confirmUpdate(); });
+        // [confirm-then-modal] «تأیید» فقط اعلان را می‌بندد و پنجرهٔ «نسخهٔ جدید» (با فهرست تغییرات) را باز می‌کند؛ نصب با دکمهٔ «بروزرسانی» همان پنجره انجام می‌شود
+        if (hok) hok.addEventListener('click', function() {
+            if (hn) hn.style.display = 'none';
+            if (pendingUpdate) showUpdateModal(false);
+            else checkUpdate(false);   // اطلاعات نسخه هنوز نیامده (فقط SW جدید پیدا شده): از version.json خوانده و پنجره باز می‌شود
+        });
         if (hlt) hlt.addEventListener('click', function() {
             try { realLS.setItem('cmupd_snooze', ((pendingUpdate && pendingUpdate.version) || '') + '|' + Date.now()); } catch(e) {}
             if (hn) hn.style.display = 'none';
