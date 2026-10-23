@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.17",
+  "version": "4.6.18",
   "notes": [
-    "Show update modal before installing new version"
+    "Remove subtitle from home hero"
   ],
   "files": [
     "index.html",
@@ -15,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "a691c78e2d9eeaa08e59dc1b41f64023668d6ad7dad13ad0e53ad73cff357852",
-    "sw.js": "66d0c1a5e33dfaa3c05b0df3bf9a22718800713cfec4f22fe3bb492f89935af3",
+    "index.html": "227a6e49dbb8b25c032efb99ad569aa37b04d669371f13eeeef204942b784ebc",
+    "sw.js": "68b16bee27787def98a71130d63675e859432173b54f6a56c344c0fc27a53203",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
