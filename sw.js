@@ -2,7 +2,7 @@
    📱 Service Worker - کلاس‌یار
    ═══════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'cmc-app-v17';
+var CACHE_NAME = 'cmc-app-v18';
 var CACHE_PREFIX = 'cmc-app-'; // فقط کش‌های همین برنامه؛ به کش برنامه‌های دیگرِ همین دامنه دست نمی‌زنیم
 var CACHE_FILES = [
     './',
@@ -16,48 +16,42 @@ var CACHE_FILES = [
 ];
 
 // ===== نصب =====
-// نسخهٔ جدید برنامه بدون اطلاع کاربر جایگزین نمی‌شود: صفحهٔ اصلی (index.html) از کشِ نسخهٔ قبلی منتقل می‌شود
-// و فقط وقتی کاربر در پنجرهٔ «نسخهٔ جدید» روی «بروزرسانی» بزند عوض می‌شود (نصب در خود برنامه انجام می‌شود).
-var PAGE_FILES = ['./', './index.html'];
+// [update-confirm] نسخهٔ جدید skipWaiting نمی‌کند: در حالت «waiting» می‌ماند تا کاربر در برنامه «تأیید» بزند
+// (برنامه پیام SKIP_WAITING می‌فرستد). صفحهٔ اصلی تا آن زمان از کشِ نسخهٔ فعلی خوانده می‌شود.
 self.addEventListener('install', function(event) {
-    console.log('✅ Service Worker نصب شد');
-    event.waitUntil((async function() {
-        var cache = await caches.open(CACHE_NAME);
-        var rest = CACHE_FILES.filter(function(f) { return PAGE_FILES.indexOf(f) < 0; });
-        await cache.addAll(rest);
-        var names = await caches.keys();
-        var prev = names.filter(function(n) { return n.indexOf(CACHE_PREFIX) === 0 && n !== CACHE_NAME; })
-            .sort(function(a, b) { return (parseInt(a.replace(/\D/g, ''), 10) || 0) - (parseInt(b.replace(/\D/g, ''), 10) || 0); }).pop();
-        var copied = 0;
-        if (prev) {
-            var pc = await caches.open(prev);
-            for (var i = 0; i < PAGE_FILES.length; i++) {
-                var r = await pc.match(PAGE_FILES[i]);
-                if (r) { await cache.put(PAGE_FILES[i], r); copied++; }
-            }
-        }
-        if (copied < PAGE_FILES.length) await cache.addAll(PAGE_FILES);   // نصب اول (یا نبودن نسخهٔ قبلی)
-    })().catch(function(err) {
-        console.log('خطا در کش کردن:', err);
-    }));
-    self.skipWaiting();
+    console.log('🔄 Service Worker در حال نصب...');
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(function(cache) {
+            // cache:'reload' → فایل‌ها حتماً از شبکه (نه از کش HTTP مرورگر) گرفته شوند تا نسخهٔ کهنه ذخیره نشود
+            return cache.addAll(CACHE_FILES.map(function(u) { return new Request(u, { cache: 'reload' }); }));
+        }).catch(function(err) {
+            console.log('خطا در کش کردن:', err);
+        })
+    );
+    // [update-confirm] self.skipWaiting() عمداً حذف شده است
 });
 
 // ===== فعال‌سازی =====
 self.addEventListener('activate', function(event) {
     console.log('✅ Service Worker فعال شد');
-    event.waitUntil(
-        caches.keys().then(function(names) {
-            return Promise.all(
-                names.filter(function(name) {
-                    return name.indexOf(CACHE_PREFIX) === 0 && name !== CACHE_NAME;
-                }).map(function(name) {
-                    return caches.delete(name);
-                })
-            );
-        })
-    );
-    self.clients.claim();
+    event.waitUntil((async function() {
+        var names = await caches.keys();
+        await Promise.all(
+            names.filter(function(name) {
+                return name.indexOf(CACHE_PREFIX) === 0 && name !== CACHE_NAME;
+            }).map(function(name) {
+                return caches.delete(name);
+            })
+        );
+        await self.clients.claim();
+    })());
+});
+
+// [update-confirm] فعال‌سازی نسخهٔ جدید فقط با تأیید کاربر
+self.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 // ===== دریافت =====

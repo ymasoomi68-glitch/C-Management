@@ -2220,7 +2220,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۳</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۴</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -8821,7 +8821,7 @@ function applyDemoReportLocks() {
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.13';
+    var APP_VERSION = '4.6.14';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -8860,17 +8860,58 @@ function applyDemoReportLocks() {
         if (bi) bi.disabled = false; if (bc) bc.disabled = false;
         m.classList.add('open');
     }
-    // اعلان نسخهٔ جدید در صفحهٔ اول؛ «تأیید» کاربر را به بخش به‌روزرسانی در تنظیمات می‌برد
-    function showHomeUpdateNotice() {
-        var pu = pendingUpdate, el = document.getElementById('homeUpdateNotice');
-        if (!pu || !el || DEMO_MODE) return;
-        try {
+    // [update-confirm] اعلان نسخهٔ جدید در صفحهٔ اول؛ «تأیید» نسخهٔ جدید را فعال می‌کند و صفحه دوباره بارگذاری می‌شود
+    function showUpdateNotice() {
+        var hn = document.getElementById('homeUpdateNotice');
+        if (!hn || DEMO_MODE) return;
+        var pu = pendingUpdate, ver = (pu && pu.version) || '';
+        try {   // اگر قبلاً «بعداً» زده و کمتر از ۱۲ ساعت گذشته
             var sn = String(realLS.getItem('cmupd_snooze') || '').split('|');
-            if (sn[0] === pu.version && Date.now() - Number(sn[1] || 0) < 12 * 3600 * 1000) return;
+            if (sn[0] === ver && Date.now() - Number(sn[1] || 0) < 12 * 3600 * 1000) return;
         } catch(e) {}
         var fa = function(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); };
-        document.getElementById('homeUpdateText').innerHTML = '🎉 نسخهٔ جدید <b>' + escapeHtml(fa(pu.version)) + '</b> منتشر شده است. برای مشاهدهٔ تغییرات و به‌روزرسانی، تأیید را بزنید.';
-        el.style.display = '';
+        var txt = document.getElementById('homeUpdateText');
+        if (txt) txt.innerHTML = '🎉 ' + (ver ? 'نسخهٔ جدید <b>' + escapeHtml(fa(ver)) + '</b>' : 'نسخهٔ جدید برنامه') + ' آماده است. برای دریافت تغییرات، تأیید را بزنید.';
+        hn.style.display = 'flex';
+    }
+    // [update-confirm] فعال‌سازی Service Worker جدید (جایگزین installUpdate قبلی)
+    function activateWaitingSW(w) {
+        var go = function() {
+            try { w.postMessage({ type: 'SKIP_WAITING' }); } catch(e) {}
+            // [fix-confirm] اگر controllerchange نیامد (مثلاً صفحه بدون کنترل‌کننده باز شده بود)، بعد از ۱.۵ ثانیه حتماً reload شود
+            setTimeout(function() { if (window.__swReloading) return; window.__swReloading = true; location.reload(); }, 1500);
+        };
+        // پیش از بارگذاری مجدد، داده‌ها کاملاً ذخیره شوند
+        try { var f = realLS.flush && realLS.flush(); if (f && f.then) { f.then(go, go); return; } } catch(e) {}
+        go();
+    }
+    function confirmUpdate() {
+        var hn = document.getElementById('homeUpdateNotice'); if (hn) hn.style.display = 'none';   // [fix-confirm] بنر بلافاصله پنهان شود
+        closeModal('modalUpdate');
+        var w = window.__pendingSWWorker;
+        if (w) { updMsg('⏳ در حال نصب نسخهٔ جدید...'); activateWaitingSW(w); return; }
+        // نسخهٔ جدید هنوز توسط مرورگر دریافت نشده: دریافتش را شروع کن و به‌محض آماده شدن فعال کن
+        window.__swApplyWhenReady = true;
+        updMsg('⏳ در حال دریافت نسخهٔ جدید... (چند لحظه صبر کنید)');
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+            navigator.serviceWorker.getRegistration().then(function(r) {
+                if (!r) { updMsg('❌ نصب نسخهٔ جدید ممکن نیست؛ برنامه را ببندید و دوباره باز کنید.', 'bad'); return; }
+                if (r.waiting) { window.__pendingSWWorker = r.waiting; activateWaitingSW(r.waiting); return; }
+                // [fix-confirm] بعد از دریافت، بدون وابستگی به وجود کنترل‌کننده، به‌محض installed شدن فعال شود
+                r.update().then(function() {
+                    var nw = r.waiting || r.installing;
+                    if (!nw) {   // نسخهٔ جدید از قبل فعال شده (مثلاً صفحه بدون کنترل‌کننده بوده): فقط صفحه دوباره بارگذاری شود
+                        if (window.__swApplyWhenReady && r.active && !window.__swReloading) { window.__swApplyWhenReady = false; window.__swReloading = true; updMsg('⏳ در حال بارگذاری مجدد...'); setTimeout(function() { location.reload(); }, 1500); }
+                        return;
+                    }
+                    var fire = function() { if (nw.state === 'installed' && window.__swApplyWhenReady) { window.__swApplyWhenReady = false; window.__pendingSWWorker = nw; activateWaitingSW(nw); } };
+                    nw.addEventListener('statechange', fire); fire();
+                }).catch(function() {});
+                setTimeout(function() {
+                    if (window.__swApplyWhenReady && !window.__pendingSWWorker) { window.__swApplyWhenReady = false; updMsg('❌ نسخهٔ جدید هنوز آماده نیست. چند دقیقه بعد دوباره امتحان کنید.', 'bad'); }
+                }, 20000);
+            }).catch(function() {});
+        }
     }
     function readUpdInputs() { return updCfg(); }
     function rawUrl(cfg, path) {
@@ -8899,73 +8940,12 @@ function applyDemoReportLocks() {
             updMsg('🎉 نسخهٔ جدید <b>' + escapeHtml(j.version) + '</b> آماده است (نسخهٔ شما: ' + escapeHtml(APP_VERSION) + ').' +
                 (notes.length ? '<ul style="margin:6px 18px 0;padding:0;line-height:1.9;">' + notes.map(function(n) { return '<li>' + escapeHtml(String(n)) + '</li>'; }).join('') + '</ul>' : ''), 'ok');
             btnI.style.display = '';
-            if (auto) showHomeUpdateNotice(); else showUpdateModal(false);
+            // [update-confirm] مرورگر هم برای دریافت sw.js جدید بررسی کند (نسخه در حالت waiting می‌ماند)
+            try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function(r) { if (r) r.update().catch(function() {}); }); } catch(e) {}
+            if (auto) showUpdateNotice(); else showUpdateModal(false);
         }).catch(function(e) {
             if (auto) return;   // بررسی خودکار: خطا را به کاربر نشان نده
             updMsg('❌ ' + (e && e.message ? (e.name === 'TypeError' ? 'اتصال به اینترنت برقرار نشد.' : e.message) : 'خطا'), 'bad');
-        });
-    }
-    function mimeOf(p) {
-        if (/\.html?$/i.test(p)) return 'text/html; charset=utf-8';
-        if (/\.js$/i.test(p)) return 'text/javascript; charset=utf-8';
-        if (/\.json$/i.test(p)) return 'application/json; charset=utf-8';
-        if (/\.png$/i.test(p)) return 'image/png';
-        if (/\.jpe?g$/i.test(p)) return 'image/jpeg';
-        if (/\.svg$/i.test(p)) return 'image/svg+xml';
-        if (/\.css$/i.test(p)) return 'text/css; charset=utf-8';
-        if (/\.xlsx$/i.test(p)) return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-        return 'application/octet-stream';
-    }
-    function installUpdate(fromModal) {
-        if (!pendingUpdate) return;
-        if (!('caches' in window)) { updMsg('❌ این مرورگر ذخیره‌سازی آفلاین ندارد؛ به‌روزرسانی خودکار ممکن نیست.', 'bad'); return; }
-        if (fromModal !== true && !confirm('نسخهٔ ' + pendingUpdate.version + ' دریافت و نصب شود؟ اطلاعات شما حفظ می‌شود.')) return;
-        var pu = pendingUpdate, btn = document.getElementById('btnUpdInstall'), got = [];
-        var mI = document.getElementById('btnUpdModalInstall'), mC = document.getElementById('btnUpdModalCancel');
-        btn.disabled = true; if (mI) mI.disabled = true; if (mC) mC.disabled = true;
-        var chain = Promise.resolve();
-        pu.files.forEach(function(f, i) {
-            chain = chain.then(function() {
-                updMsg('⏳ دریافت فایل‌ها (' + toPersianNum(i + 1) + ' از ' + toPersianNum(pu.files.length) + ')...');
-                return fetch(rawUrl(pu.cfg, f) + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r) {
-                    if (!r.ok) throw new Error('دریافت «' + f + '» ناموفق بود (' + r.status + ').');
-                    return r.arrayBuffer();
-                }).then(function(buf) { got.push({ path: f, buf: buf }); });
-            });
-        });
-        chain.then(function() {
-            if (pu.sha) {
-                got.forEach(function(g) {
-                    var want = pu.sha[g.path]; if (!want) return;
-                    var h = CMAuth._sha256(new Uint8Array(g.buf)), hex = '';
-                    for (var q = 0; q < h.length; q++) hex += ('0' + h[q].toString(16)).slice(-2);
-                    if (hex !== String(want).toLowerCase()) throw new Error('فایل «' + g.path + '» با نسخهٔ اعلام‌شده مطابقت ندارد (ممکن است ناقص دریافت شده یا فایل‌های مخزن ناهماهنگ باشند). به‌روزرسانی لغو شد و برنامهٔ فعلی دست‌نخورده ماند.');
-                });
-            }
-            var idx = got.filter(function(g) { return g.path === 'index.html'; })[0];
-            var html = new TextDecoder('utf-8').decode(idx.buf);
-            if (idx.buf.byteLength < 50000 || html.indexOf('name="cm-app"') < 0 || html.indexOf('<!DOCTYPE') !== 0) throw new Error('فایل index.html دریافت‌شده معتبر نیست؛ به‌روزرسانی لغو شد و برنامهٔ فعلی دست‌نخورده ماند.');
-            var sw = got.filter(function(g) { return g.path === 'sw.js'; })[0];
-            if (sw && new TextDecoder('utf-8').decode(sw.buf).indexOf('CACHE_NAME') < 0) throw new Error('فایل sw.js دریافت‌شده معتبر نیست.');
-            return caches.keys().then(function(names) {
-                var mine = names.filter(function(n) { return n.indexOf('cmc-app-') === 0; }).sort(function(a, b) { return (parseInt(a.replace(/\D/g, ''), 10) || 0) - (parseInt(b.replace(/\D/g, ''), 10) || 0); });
-                return caches.open(mine.length ? mine[mine.length - 1] : 'cmc-app-update');
-            });
-        }).then(function(cache) {
-            var base = new URL('./', location.href).href, ops = [];
-            got.forEach(function(g) {
-                var mk = function() { return new Response(g.buf.slice(0), { status: 200, headers: { 'Content-Type': mimeOf(g.path) } }); };
-                ops.push(cache.put(base + g.path, mk()));
-                if (g.path === 'index.html') ops.push(cache.put(base, mk()));
-            });
-            return Promise.all(ops);
-        }).then(function() {
-            updMsg('✅ نسخهٔ ' + escapeHtml(pu.version) + ' نصب شد. در حال بازشدن مجدد...', 'ok');
-            var p = (navigator.serviceWorker && navigator.serviceWorker.getRegistration) ? navigator.serviceWorker.getRegistration().then(function(r) { return r && r.update(); }).catch(function() {}) : Promise.resolve();
-            return p.then(function() { setTimeout(function() { location.reload(); }, 900); });
-        }).catch(function(e) {
-            btn.disabled = false; if (mI) mI.disabled = false; if (mC) mC.disabled = false;
-            updMsg('❌ ' + (e && e.message ? e.message : 'خطا در به‌روزرسانی'), 'bad');
         });
     }
     (function() {
@@ -8973,19 +8953,15 @@ function applyDemoReportLocks() {
         var vl = document.getElementById('updCurrent'); if (vl) vl.textContent = fa(APP_VERSION);
         var fl = document.getElementById('appVersionLabel'); if (fl) fl.textContent = fa(APP_VERSION);
         var bc = document.getElementById('btnUpdCheck'); if (bc) bc.addEventListener('click', function() { checkUpdate(false); });
-        var bi = document.getElementById('btnUpdInstall'); if (bi) bi.addEventListener('click', function() { installUpdate(false); });
+        var bi = document.getElementById('btnUpdInstall'); if (bi) bi.addEventListener('click', function() { confirmUpdate(); });  // [update-confirm]
         var hok = document.getElementById('btnHomeUpdOk'), hlt = document.getElementById('btnHomeUpdLater'), hn = document.getElementById('homeUpdateNotice');
-        if (hok) hok.addEventListener('click', function() {
-            if (hn) hn.style.display = 'none';
-            showPage('settings');
-            var c = document.getElementById('btnUpdCheck'), card = c && c.closest('.settings-card');
-            if (card) setTimeout(function() { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
-        });
+        // [update-confirm] «تأیید» → فعال‌سازی نسخهٔ جدید؛ «بعداً» → پنهان‌شدن اعلان تا ۱۲ ساعت
+        if (hok) hok.addEventListener('click', function() { confirmUpdate(); });
         if (hlt) hlt.addEventListener('click', function() {
-            try { if (pendingUpdate) realLS.setItem('cmupd_snooze', pendingUpdate.version + '|' + Date.now()); } catch(e) {}
+            try { realLS.setItem('cmupd_snooze', ((pendingUpdate && pendingUpdate.version) || '') + '|' + Date.now()); } catch(e) {}
             if (hn) hn.style.display = 'none';
         });
-        var mi = document.getElementById('btnUpdModalInstall'); if (mi) mi.addEventListener('click', function() { installUpdate(true); });
+        var mi = document.getElementById('btnUpdModalInstall'); if (mi) mi.addEventListener('click', function() { confirmUpdate(); });  // [update-confirm]
         var mc = document.getElementById('btnUpdModalCancel');
         if (mc) mc.addEventListener('click', function() {
             try { if (pendingUpdate) realLS.setItem('cmupd_snooze', pendingUpdate.version + '|' + Date.now()); } catch(e) {}
@@ -9090,15 +9066,43 @@ function applyDemoReportLocks() {
     var deferredPrompt = null;
 
     // ===== ثبت Service Worker =====
+    // [update-confirm] نسخهٔ جدید SW در حالت waiting می‌ماند؛ اعلان در صفحهٔ اول نشان داده می‌شود و فقط با «تأیید» فعال می‌شود
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
+        var swHadController = !!navigator.serviceWorker.controller;   // در نصب اول false است
+        var swTrack = function(worker) {
+            if (!worker) return;
+            var check = function() {
+                if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                    window.__pendingSWWorker = worker;
+                    if (window.__swApplyWhenReady) { activateWaitingSW(worker); } else showUpdateNotice();
+                }
+            };
+            worker.addEventListener('statechange', check);
+            check();
+        };
+        // (اسکریپت اصلی ممکن است بعد از رویداد load اجرا شود؛ پس اگر load گذشته بود، بلافاصله ثبت می‌کنیم)
+        var swRegister = function() {
             navigator.serviceWorker.register('./sw.js')
                 .then(function(reg) {
                     console.log('✅ Service Worker ثبت شد:', reg.scope);
+                    // نسخهٔ جدید از قبل در waiting است (مثلاً بعد از بستن و بازکردن برنامه)
+                    if (reg.waiting && navigator.serviceWorker.controller) {
+                        window.__pendingSWWorker = reg.waiting;
+                        showUpdateNotice();
+                    }
+                    swTrack(reg.installing);
+                    reg.addEventListener('updatefound', function() { swTrack(reg.installing); });
                 })
                 .catch(function(err) {
                     console.log('❌ خطا در ثبت Service Worker:', err);
                 });
+        };
+        if (document.readyState === 'complete') swRegister(); else window.addEventListener('load', swRegister);
+        // وقتی SW جدید فعال شد، یک بار صفحه دوباره بارگذاری شود (نه در نصب اول)
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (!swHadController || window.__swReloading) return;
+            window.__swReloading = true;
+            location.reload();
         });
     }
 
