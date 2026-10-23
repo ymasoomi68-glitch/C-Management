@@ -1,14 +1,9 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.12",
+  "version": "4.6.13",
   "notes": [
-  "🔔 یادآوری هوشمند پشتیبان‌گیری (با بنر هشدار در بالای صفحه)",
-  "📋 مشاهدهٔ نمرات همهٔ دروس با کلیک روی نام دانش‌آموز",
-  "📅 گزارش روزانه با کادر گرافیکی غایبین و متأخرین",
-  "🖼️ دانلود کارنامه و گزارش روزانه به صورت عکس",
-  "🎉 اعلان نسخهٔ جدید در صفحهٔ اصلی (به‌جای پنجرهٔ بازشو)",
-  "📑 ترتیب جدید تب‌های گزارش‌ها"
-],
+    "Allow reports in demo (view only)"
+  ],
   "files": [
     "index.html",
     "sw.js",
@@ -20,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "825b1020b0e6a55a6ad0e019c9b44caa002bf0b76c9425a180b80b74dcf58eda",
-    "sw.js": "71e6156c38c37336b9ef6f1ba5cf4602578aedc5b8e21db4e938e6e997919e10",
+    "index.html": "c80d7dd8b276a0ba69ea8022dee51770664a099ba3c3734c3334636f4735d224",
+    "sw.js": "986ece57bb26bcf34e625c5086a91628fbe1dcc4fc906a35c4e20e274d85709f",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",

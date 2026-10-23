@@ -2220,7 +2220,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۲</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۳</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -3366,7 +3366,7 @@ var CMPDF = (function(){
     var DEMO_PHONE = '09147568019';
     var DEMO_TG_ID = '@masoomi68';
     var DEMO_MSG = '\n\n⚠️ این نسخهٔ آزمایشی است.\n\nبرای دریافت نسخهٔ کامل و فعال‌سازی:\n📞 ' + DEMO_PHONE + '\n💬 تلگرام/شاد/ایتا: ' + DEMO_TG_ID;
-    var DEMO_ALLOWED_PAGES = ['home', 'classes', 'students', 'grades'];
+    var DEMO_ALLOWED_PAGES = ['home', 'classes', 'students', 'grades', 'reports'];
     var DEMO_MODE = (function() {
         if (window.__CM_DEMO === true) return true;   // [demo-upgrade] دمو بدون حساب (?demo=1)
         // سازگاری با حساب‌های دموی نسخهٔ قبلی
@@ -3634,6 +3634,20 @@ var CMPDF = (function(){
     var pages = document.querySelectorAll('.page');
 
     var currentPageName = 'home';
+	// در حالت دمو: غیرفعال کردن دکمه‌های چاپ/دانلود
+function applyDemoReportLocks() {
+    if (!DEMO_MODE) return;
+    // مخفی کردن دکمه‌های چاپ در پیش‌نمایش
+    var css = document.createElement('style');
+    css.id = 'demo-report-locks';
+    css.textContent =
+        '#pvPrint, #pvImage, #btnPrintStudentReport, #btnReportPrintAll, #btnReportDownloadAll { display: none !important; }' +
+        '#pvViewer .pv-actions { display: none !important; }' +
+        '#printViewer .pv-actions { display: none !important; }';
+    if (!document.getElementById('demo-report-locks')) {
+        document.head.appendChild(css);
+    }
+}
     function showPage(pageName, fromPop) {
         if (DEMO_MODE && DEMO_ALLOWED_PAGES.indexOf(pageName) < 0) {
             if (!fromPop) { alert('🔒 این بخش در نسخهٔ آزمایشی غیرفعال است.' + DEMO_MSG); return; }
@@ -8797,7 +8811,7 @@ var CMPDF = (function(){
                 '• فقط ۱ کلاس\n' +
                 '• فقط ۵ دانش‌آموز\n' +
                 '• بدون ورود از PDF و اکسل\n' +
-                '• بخش‌های حضور، رفتار، تکالیف، گزارش و تنظیمات غیرفعال\n\n' +
+                '• بخش‌های حضور، رفتار، تکالیف و تنظیمات غیرفعال\n\n' +
                 '💎 برای دریافت نسخهٔ کامل، روی دکمهٔ «ارتقا به نسخهٔ کامل» در بالای صفحه بزنید.\n\n' +
                 '📞 ' + DEMO_PHONE + '\n' +
                 '💬 تلگرام/شاد/ایتا: ' + DEMO_TG_ID);
@@ -8807,7 +8821,7 @@ var CMPDF = (function(){
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.12';
+    var APP_VERSION = '4.6.13';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -9172,6 +9186,7 @@ var CMPDF = (function(){
     loadSettings();
     applyFontSize(appSettings.fontSize);
     initBackupReminder();   // [backup-reminder]
+    applyDemoReportLocks();   // [demo-upgrade] در دمو، چاپ/دانلود گزارش‌ها غیرفعال
 
     try {
         var savedTheme = localStorage.getItem('cmc_theme');
