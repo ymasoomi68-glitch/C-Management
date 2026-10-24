@@ -2,7 +2,7 @@
    📱 Service Worker - کلاس‌یار
    ═══════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'cmc-app-v22';
+var CACHE_NAME = 'cmc-app-v23';
 var CACHE_PREFIX = 'cmc-app-'; // فقط کش‌های همین برنامه؛ به کش برنامه‌های دیگرِ همین دامنه دست نمی‌زنیم
 var CACHE_FILES = [
     './',
@@ -20,12 +20,22 @@ var CACHE_FILES = [
 // (برنامه پیام SKIP_WAITING می‌فرستد). صفحهٔ اصلی تا آن زمان از کشِ نسخهٔ فعلی خوانده می‌شود.
 self.addEventListener('install', function(event) {
     console.log('🔄 Service Worker در حال نصب...');
+    // [fix-4] فایل‌های ضروری باید کامل کش شوند؛ اگر نشدند نصب شکست می‌خورد و SW/کش قبلی دست‌نخورده می‌ماند
+    // (قبلاً خطا قورت داده می‌شد و با کش خالی فعال می‌شد، و کش قدیمی پاک می‌شد). آیکون‌ها اختیاری‌اند.
+    var CRITICAL = ['./', './index.html', './manifest.json'];
     event.waitUntil(
         caches.open(CACHE_NAME).then(function(cache) {
             // cache:'reload' → فایل‌ها حتماً از شبکه (نه از کش HTTP مرورگر) گرفته شوند تا نسخهٔ کهنه ذخیره نشود
-            return cache.addAll(CACHE_FILES.map(function(u) { return new Request(u, { cache: 'reload' }); }));
+            var req = function(u) { return new Request(u, { cache: 'reload' }); };
+            return cache.addAll(CRITICAL.map(req)).then(function() {
+                return Promise.all(CACHE_FILES.filter(function(f) { return CRITICAL.indexOf(f) < 0; }).map(function(f) {
+                    return cache.add(req(f)).catch(function(err) { console.log('کش اختیاری انجام نشد:', f, err); });
+                }));
+            });
         }).catch(function(err) {
-            console.log('خطا در کش کردن:', err);
+            // [fix-4] کشِ ناقصِ همین نسخه پاک شود (تا با کش نسخهٔ جدید اشتباه گرفته نشود) و نصب شکست بخورد
+            console.log('نصب SW ناموفق بود؛ نسخهٔ قبلی حفظ شد:', err);
+            return caches.delete(CACHE_NAME).then(function() { throw err; });
         })
     );
     // [update-confirm] self.skipWaiting() عمداً حذف شده است
@@ -51,6 +61,21 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('message', function(event) {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
+    }
+    // [fix-6] صفحه می‌تواند از ورکرِ جدید بخواهد فایل‌های صفحهٔ اصلی را دوباره (بدون کش HTTP و بدون عبور از SW قدیمی) بگیرد؛
+    // ورکرِ در حال انتظار خودش fetch می‌کند و درخواستش از fetch-handler ورکر قدیمی رد نمی‌شود.
+    if (event.data && event.data.type === 'REFRESH_PAGES' && event.ports && event.ports[0]) {
+        var port = event.ports[0];
+        event.waitUntil(
+            caches.open(CACHE_NAME).then(function(cache) {
+                return Promise.all(['./', './index.html'].map(function(u) {
+                    return fetch(new Request(u, { cache: 'reload' })).then(function(r) {
+                        if (!r || r.status !== 200) throw new Error('bad status');
+                        return cache.put(u, r);
+                    });
+                }));
+            }).then(function() { port.postMessage({ ok: true }); }, function() { port.postMessage({ ok: false }); })
+        );
     }
 });
 

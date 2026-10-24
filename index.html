@@ -1601,6 +1601,7 @@ window.CMStore = (function(){
                 <div class="hh-text">
                     <div class="hh-date" id="homeDate"></div>
                     <h1 id="homeGreet">سلام 👋</h1>
+                    <p>امروز کدام بخش را باز کنیم؟</p>
                 </div>
                 <svg class="hh-art" viewBox="0 0 160 130" aria-hidden="true" fill="none">
                     <rect x="22" y="30" width="96" height="76" rx="12" fill="#fff" opacity=".95"/>
@@ -2219,7 +2220,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۸</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۹</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -7966,6 +7967,8 @@ function applyDemoReportLocks() {
         html += 'th, td { border: 1px solid #000; text-align: center; padding: ' + pad + 'px 3px; vertical-align: middle; }';
         html += 'th { background: #e8e8e8; } td.name { text-align: right; padding-right: 6px; font-weight: 600; word-break: break-word; }';
         html += 'td.l { text-align: right; }';
+        // [fix-7] در جدول (table-layout: fixed) چیپ‌های بلند باید داخل سلول بشکنند، نه از آن بیرون بزنند
+        html += 'td.l .chip { white-space: normal; word-break: break-word; border-radius: 10px; line-height: 1.7; }';
         html += '</style></head><body>';
         html += '<div class="h">گزارش روزانهٔ کلاس ' + escapeHtml(cls.className) + '</div>';
         html += yearLine();
@@ -8820,7 +8823,7 @@ function applyDemoReportLocks() {
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.18';
+    var APP_VERSION = '4.6.19';
     var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
     var pendingUpdate = null;
 
@@ -8839,8 +8842,9 @@ function applyDemoReportLocks() {
         if (ms) { ms.innerHTML = html; ms.style.color = col; ms.style.display = html ? '' : 'none'; }
     }
     // پنجرهٔ اطلاع‌رسانی نسخهٔ جدید: توضیح تغییرات + «بروزرسانی» / «انصراف»
-    function showUpdateModal(auto) {
-        var pu = pendingUpdate, m = document.getElementById('modalUpdate');
+    function showUpdateModal(auto, generic) {
+        // [fix-1] اگر فقط SW جدید پیدا شده و اطلاعات نسخه نیست، مودال با متن عمومی باز می‌شود (نه بن‌بست بی‌صدا)
+        var pu = pendingUpdate || (generic ? { version: '', notes: [] } : null), m = document.getElementById('modalUpdate');
         if (!pu || !m) return;
         if (auto) {   // بعد از «انصراف»، همان نسخه تا ۱۲ ساعت دوباره خودکار پرسیده نمی‌شود
             try {
@@ -8849,7 +8853,9 @@ function applyDemoReportLocks() {
             } catch(e) {}
         }
         var fa = function(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); };
-        document.getElementById('updModalVer').innerHTML = 'نسخهٔ <b>' + escapeHtml(fa(pu.version)) + '</b> &nbsp;(نسخهٔ فعلی شما: ' + escapeHtml(fa(APP_VERSION)) + ')';
+        document.getElementById('updModalVer').innerHTML = pu.version
+            ? 'نسخهٔ <b>' + escapeHtml(fa(pu.version)) + '</b> &nbsp;(نسخهٔ فعلی شما: ' + escapeHtml(fa(APP_VERSION)) + ')'
+            : 'نسخهٔ جدیدی آماده است &nbsp;(نسخهٔ فعلی شما: ' + escapeHtml(fa(APP_VERSION)) + ')';
         var notes = pu.notes || [];
         document.getElementById('updModalNotes').innerHTML = notes.length
             ? '<div class="upd-notes-title">تغییرات این نسخه:</div><ul>' + notes.map(function(n) { return '<li>' + escapeHtml(String(n)) + '</li>'; }).join('') + '</ul>'
@@ -8866,7 +8872,8 @@ function applyDemoReportLocks() {
         var pu = pendingUpdate, ver = (pu && pu.version) || '';
         try {   // اگر قبلاً «بعداً» زده و کمتر از ۱۲ ساعت گذشته
             var sn = String(realLS.getItem('cmupd_snooze') || '').split('|');
-            if (sn[0] === ver && Date.now() - Number(sn[1] || 0) < 12 * 3600 * 1000) return;
+            // [fix-3] اگر نسخه هنوز معلوم نیست (اعلان مبتنی بر SW)، هر «بعداً/انصرافِ» کمتر از ۱۲ ساعت قبل معتبر است؛ وگرنه کلید نسخه باید یکی باشد
+            if ((sn[0] === ver || !ver || !sn[0]) && Date.now() - Number(sn[1] || 0) < 12 * 3600 * 1000) return;
         } catch(e) {}
         var fa = function(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); };
         var txt = document.getElementById('homeUpdateText');
@@ -8875,6 +8882,13 @@ function applyDemoReportLocks() {
     }
     // [update-confirm] فعال‌سازی Service Worker جدید (جایگزین installUpdate قبلی)
     function activateWaitingSW(w) {
+        // [fix-6] ابتدا بررسی فایل‌های نسخهٔ جدید؛ در صورت خطا فعال‌سازی انجام نمی‌شود
+        if (!w.__verified) {
+            verifyNewCache(w).then(function() { w.__verified = true; activateWaitingSW(w); }, function(e) {
+                updToast((e && e.message) || 'بررسی فایل‌های نسخهٔ جدید ناموفق بود.', 'bad');   // [fix-2]
+            });
+            return;
+        }
         var go = function() {
             try { w.postMessage({ type: 'SKIP_WAITING' }); } catch(e) {}
             // [fix-confirm] اگر controllerchange نیامد (مثلاً صفحه بدون کنترل‌کننده باز شده بود)، بعد از ۱.۵ ثانیه حتماً reload شود
@@ -8888,29 +8902,103 @@ function applyDemoReportLocks() {
         var hn = document.getElementById('homeUpdateNotice'); if (hn) hn.style.display = 'none';   // [fix-confirm] بنر بلافاصله پنهان شود
         closeModal('modalUpdate');
         var w = window.__pendingSWWorker;
-        if (w) { updMsg('⏳ در حال نصب نسخهٔ جدید...'); activateWaitingSW(w); return; }
+        // [fix-5] ورکرِ ذخیره‌شده ممکن است منقضی (redundant) شده باشد (مثلاً نسخهٔ جدیدتری منتشر شده)؛ فقط ورکرِ installed معتبر است
+        if (w && w.state !== 'installed') { window.__pendingSWWorker = null; w = null; }
+        if (w) { updToast('⏳ در حال نصب نسخهٔ جدید...'); activateWaitingSW(w); return; }   // [fix-2]
         // نسخهٔ جدید هنوز توسط مرورگر دریافت نشده: دریافتش را شروع کن و به‌محض آماده شدن فعال کن
         window.__swApplyWhenReady = true;
-        updMsg('⏳ در حال دریافت نسخهٔ جدید... (چند لحظه صبر کنید)');
+        updToast('⏳ در حال دریافت نسخهٔ جدید... (چند لحظه صبر کنید)');   // [fix-2]
         if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
             navigator.serviceWorker.getRegistration().then(function(r) {
-                if (!r) { updMsg('❌ نصب نسخهٔ جدید ممکن نیست؛ برنامه را ببندید و دوباره باز کنید.', 'bad'); return; }
-                if (r.waiting) { window.__pendingSWWorker = r.waiting; activateWaitingSW(r.waiting); return; }
+                if (!r) { window.__swApplyWhenReady = false; updToast('نصب نسخهٔ جدید ممکن نیست؛ برنامه را ببندید و دوباره باز کنید.', 'bad'); return; }   // [fix-2]
+                if (r.waiting && r.waiting.state === 'installed') { window.__swApplyWhenReady = false; window.__pendingSWWorker = r.waiting; activateWaitingSW(r.waiting); return; }
                 // [fix-confirm] بعد از دریافت، بدون وابستگی به وجود کنترل‌کننده، به‌محض installed شدن فعال شود
                 r.update().then(function() {
                     var nw = r.waiting || r.installing;
-                    if (!nw) {   // نسخهٔ جدید از قبل فعال شده (مثلاً صفحه بدون کنترل‌کننده بوده): فقط صفحه دوباره بارگذاری شود
-                        if (window.__swApplyWhenReady && r.active && !window.__swReloading) { window.__swApplyWhenReady = false; window.__swReloading = true; updMsg('⏳ در حال بارگذاری مجدد...'); setTimeout(function() { location.reload(); }, 1500); }
+                    if (!nw) {
+                        // نسخهٔ جدید از قبل فعال شده (مثلاً صفحه بدون کنترل‌کننده بوده). [fix-6] فقط اگر کشِ فعلی واقعاً نسخهٔ اعلام‌شده را دارد reload کن؛
+                        // وگرنه reloadِ بی‌اثر و تکراری انجام نشود.
+                        if (!window.__swApplyWhenReady || window.__swReloading) return;
+                        window.__swApplyWhenReady = false;
+                        verifyNewCache(r.active).then(function() {
+                            var wantV = pendingUpdate && pendingUpdate.version;
+                            if (wantV && verCmp(wantV, APP_VERSION) > 0) return;   // کش درست است ولی صفحهٔ باز هنوز قدیمی است → reload لازم است
+                        }).then(function() {
+                            window.__swReloading = true; updToast('⏳ در حال بارگذاری مجدد...'); setTimeout(function() { location.reload(); }, 1500);
+                        }, function(e) { updToast((e && e.message) || 'نسخهٔ جدید هنوز آماده نیست.', 'bad'); });
                         return;
                     }
                     var fire = function() { if (nw.state === 'installed' && window.__swApplyWhenReady) { window.__swApplyWhenReady = false; window.__pendingSWWorker = nw; activateWaitingSW(nw); } };
                     nw.addEventListener('statechange', fire); fire();
                 }).catch(function() {});
                 setTimeout(function() {
-                    if (window.__swApplyWhenReady && !window.__pendingSWWorker) { window.__swApplyWhenReady = false; updMsg('❌ نسخهٔ جدید هنوز آماده نیست. چند دقیقه بعد دوباره امتحان کنید.', 'bad'); }
+                    if (window.__swApplyWhenReady && !window.__pendingSWWorker) { window.__swApplyWhenReady = false; updToast('نسخهٔ جدید هنوز آماده نیست. چند دقیقه بعد دوباره امتحان کنید.', 'bad'); }   // [fix-2]
                 }, 20000);
             }).catch(function() {});
         }
+    }
+    // [fix-2] پیام قابل‌مشاهده در هر صفحه (updMsg فقط در تنظیمات/مودال دیده می‌شود)
+    function updToast(msg, kind) {
+        try {
+            updMsg(escapeHtml(msg), kind);
+            var t = document.getElementById('updToast');
+            if (!t) {
+                t = document.createElement('div'); t.id = 'updToast'; t.setAttribute('role', 'status');
+                t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;max-width:90vw;padding:12px 18px;border-radius:12px;color:#fff;font-size:14px;line-height:1.8;box-shadow:0 6px 24px rgba(0,0,0,.25);text-align:center;';
+                document.body.appendChild(t);
+            }
+            t.style.background = kind === 'bad' ? '#dc2626' : kind === 'ok' ? '#059669' : '#334155';
+            t.textContent = msg; t.style.display = 'block';
+            clearTimeout(t._tm); t._tm = setTimeout(function() { t.style.display = 'none'; }, kind === 'bad' ? 9000 : 4000);
+        } catch(e) {}
+    }
+    // [fix-1] خواندن اطلاعات نسخه (نسخه + فهرست تغییرات) بدون دست‌زدن به رابط؛ در صورت خطا null برمی‌گرداند
+    function fetchUpdateInfo() {
+        if (!navigator.onLine) return Promise.resolve(null);
+        var cfg = updCfg();
+        return fetch(rawUrl(cfg, 'version.json') + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.ok ? r.json() : null; }).then(function(j) {
+            if (!j || j.app !== 'cmc-class-manager' || !/^\d+(\.\d+){0,2}$/.test(String(j.version)) || verCmp(j.version, APP_VERSION) <= 0) return null;
+            return { cfg: cfg, version: String(j.version), files: [], sha: (j.sha256 && typeof j.sha256 === 'object') ? j.sha256 : null, notes: Array.isArray(j.notes) ? j.notes : (j.notes ? [String(j.notes)] : []) };
+        }).catch(function() { return null; });
+    }
+    // [fix-6] پیش از فعال‌سازی، فایل صفحهٔ اصلیِ کشِ نسخهٔ جدید بررسی می‌شود (اعتبار + هم‌خوانی با نسخهٔ اعلام‌شده + sha256)؛
+    // اگر کهنه/ناقص بود یک بار از شبکه (بدون کش) دوباره گرفته و جایگزین می‌شود، وگرنه خطا می‌دهد و نسخهٔ فعلی دست‌نخورده می‌ماند.
+    function verifyNewCache(worker) {
+        if (!('caches' in window)) return Promise.resolve();
+        var want = pendingUpdate && pendingUpdate.version, sha = pendingUpdate && pendingUpdate.sha && pendingUpdate.sha['index.html'];
+        var hex = function(buf) { var h = CMAuth._sha256(new Uint8Array(buf)), o = ''; for (var q = 0; q < h.length; q++) o += ('0' + h[q].toString(16)).slice(-2); return o; };
+        var good = function(buf) {
+            if (!buf) return false;
+            var html = new TextDecoder('utf-8').decode(buf);
+            if (buf.byteLength < 50000 || html.indexOf('name="cm-app"') < 0 || html.indexOf('<!DOCTYPE') !== 0) return false;
+            if (want && html.indexOf("APP_VERSION = '" + want + "'") < 0) return false;
+            if (sha && hex(buf) !== String(sha).toLowerCase()) return false;
+            return true;
+        };
+        var notReady = function() { return new Error('فایل‌های نسخهٔ جدید هنوز کامل روی سرور منتشر نشده‌اند. چند دقیقه بعد دوباره امتحان کنید؛ برنامهٔ فعلی دست‌نخورده ماند.'); };
+        // دریافت دوبارهٔ فایل‌ها توسط خودِ ورکرِ جدید (fetch صفحه از SW قدیمی رد می‌شود و دوباره نسخهٔ قدیمی را می‌دهد)
+        var refresh = function() {
+            return new Promise(function(resolve, reject) {
+                if (!worker) { reject(notReady()); return; }
+                var ch = new MessageChannel(), done = false;
+                var fin = function(ok) { if (done) return; done = true; ok ? resolve() : reject(notReady()); };
+                ch.port1.onmessage = function(e) { fin(!!(e.data && e.data.ok)); };
+                setTimeout(function() { fin(false); }, 10000);
+                try { worker.postMessage({ type: 'REFRESH_PAGES' }, [ch.port2]); } catch(e) { fin(false); }
+            });
+        };
+        return caches.keys().then(function(names) {
+            var mine = names.filter(function(n) { return n.indexOf('cmc-app-') === 0; }).sort(function(a, b) { return (parseInt(a.replace(/\D/g, ''), 10) || 0) - (parseInt(b.replace(/\D/g, ''), 10) || 0); });
+            if (!mine.length) return;
+            return caches.open(mine[mine.length - 1]).then(function(cache) {
+                var base = new URL('./', location.href).href;
+                var read = function() { return cache.match(base + 'index.html', { ignoreSearch: true }).then(function(r) { return r ? r.clone().arrayBuffer() : null; }); };
+                return read().then(function(buf) {
+                    if (good(buf)) return;
+                    return refresh().then(read).then(function(nb) { if (!good(nb)) throw notReady(); });
+                });
+            });
+        });
     }
     function readUpdInputs() { return updCfg(); }
     function rawUrl(cfg, path) {
@@ -8932,7 +9020,12 @@ function applyDemoReportLocks() {
                 return typeof f === 'string' && /^[\w.\-\/]+$/.test(f) && f.indexOf('..') < 0 && f.charAt(0) !== '/';
             });
             if (files.indexOf('index.html') < 0) throw new Error('فهرست فایل‌های نسخه ناقص است.');
-            if (verCmp(j.version, APP_VERSION) <= 0) { updMsg('✅ نسخهٔ شما (' + escapeHtml(APP_VERSION) + ') به‌روز است.', 'ok'); return; }
+            if (verCmp(j.version, APP_VERSION) <= 0) {
+                // [fix-1] اگر SW جدیدی در انتظار است (بدون تغییر شمارهٔ نسخه)، به‌جای «به‌روز است» همان را برای تأیید نشان بده
+                var ww = window.__pendingSWWorker;
+                if (ww && ww.state === 'installed') { updMsg('🎉 به‌روزرسانی جدیدی آماده است.', 'ok'); btnI.style.display = ''; if (auto) showUpdateNotice(); else showUpdateModal(false, true); return; }
+                updMsg('✅ نسخهٔ شما (' + escapeHtml(APP_VERSION) + ') به‌روز است.', 'ok'); return;
+            }
             pendingUpdate = { cfg: cfg, version: String(j.version), files: files, sha: (j.sha256 && typeof j.sha256 === 'object') ? j.sha256 : null };
             var notes = Array.isArray(j.notes) ? j.notes : (j.notes ? [String(j.notes)] : []);
             pendingUpdate.notes = notes;
@@ -8958,8 +9051,9 @@ function applyDemoReportLocks() {
         // [confirm-then-modal] «تأیید» فقط اعلان را می‌بندد و پنجرهٔ «نسخهٔ جدید» (با فهرست تغییرات) را باز می‌کند؛ نصب با دکمهٔ «بروزرسانی» همان پنجره انجام می‌شود
         if (hok) hok.addEventListener('click', function() {
             if (hn) hn.style.display = 'none';
-            if (pendingUpdate) showUpdateModal(false);
-            else checkUpdate(false);   // اطلاعات نسخه هنوز نیامده (فقط SW جدید پیدا شده): از version.json خوانده و پنجره باز می‌شود
+            // [fix-1] اگر اطلاعات نسخه نیست (فقط SW جدید پیدا شده) سعی می‌کنیم از version.json بخوانیم، ولی در هر حال مودال باز می‌شود (با متن عمومی)
+            if (pendingUpdate) { showUpdateModal(false); return; }
+            fetchUpdateInfo().then(function(info) { if (info && !pendingUpdate) pendingUpdate = info; showUpdateModal(false, true); });
         });
         if (hlt) hlt.addEventListener('click', function() {
             try { realLS.setItem('cmupd_snooze', ((pendingUpdate && pendingUpdate.version) || '') + '|' + Date.now()); } catch(e) {}

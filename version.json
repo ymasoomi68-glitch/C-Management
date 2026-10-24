@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.18",
+  "version": "4.6.19",
   "notes": [
-    "Remove subtitle from home hero"
+    "Fix update flow bugs and daily report layout"
   ],
   "files": [
     "index.html",
@@ -15,8 +15,8 @@
     "favicon.png"
   ],
   "sha256": {
-    "index.html": "227a6e49dbb8b25c032efb99ad569aa37b04d669371f13eeeef204942b784ebc",
-    "sw.js": "68b16bee27787def98a71130d63675e859432173b54f6a56c344c0fc27a53203",
+    "index.html": "f39a6b418cb08224e2bd9b6b1a47a59c7ce94b1b0a7a7ce8b766fe6fbee11fb2",
+    "sw.js": "bcb9e6cedf165af255ef208d8d41041d24e040baf1e4cd435f682719abdcbb29",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",
