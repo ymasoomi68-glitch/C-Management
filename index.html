@@ -2055,10 +2055,10 @@ window.CMStore = (function(){
                     <div class="settings-card-title">🔄 به‌روزرسانی برنامه</div>
                     <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.8;">
                         نسخهٔ فعلی: <b id="updCurrent"></b><br>
-                        با زدن دکمه، وجود نسخهٔ جدید بررسی می‌شود و در صورت وجود می‌توانید آن را نصب کنید. اطلاعات شما دست‌نخورده می‌ماند.
+                        با زدن دکمه، وجود نسخهٔ جدید بررسی می‌شود و در صورت وجود، پس از تأیید شما نصب می‌شود (برنامه یک بار دوباره باز می‌شود). اطلاعات شما دست‌نخورده می‌ماند.
                     </p>
                     <button class="btn btn-primary" id="btnUpdCheck" style="width:100%;margin-bottom:8px;">🔄 بررسی به‌روزرسانی</button>
-                    <button class="btn btn-success" id="btnUpdInstall" style="width:100%;display:none;">⬇️ دریافت و نصب نسخهٔ جدید</button>
+                    <button class="btn btn-success" id="btnUpdInstall" style="width:100%;display:none;">⬇️ نصب نسخهٔ جدید</button>
                     <div id="updStatus" style="font-size:13px;margin-top:10px;line-height:1.8;"></div>
                 </div>
 
@@ -2220,7 +2220,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۱۹</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۲۰</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -8823,8 +8823,8 @@ function applyDemoReportLocks() {
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.19';
-    var realLS = window.CMStore, UPD_KEY = 'cmupd_v1';
+    var APP_VERSION = '4.6.20';
+    var realLS = window.CMStore;   // [fix-11] UPD_KEY حذف شد (بدون استفاده)
     var pendingUpdate = null;
 
     var UPD_REPO = 'ymasoomi68-glitch/C-Management', UPD_BRANCH = 'HEAD';
@@ -8834,6 +8834,8 @@ function applyDemoReportLocks() {
         for (var i = 0; i < 3; i++) { var d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0 ? 1 : -1; }
         return 0;
     }
+    // [fix-12] ارقام پیام‌های وضعیت هم فارسی شوند (مثل اعلان و مودال)
+    var updFa = function(t) { return String(t).replace(/\d/g, function(d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); }); };
     function updMsg(html, kind) {
         var el = document.getElementById('updStatus');
         var col = kind === 'bad' ? '#dc2626' : kind === 'ok' ? '#059669' : 'var(--text-muted)';
@@ -8890,9 +8892,17 @@ function applyDemoReportLocks() {
             return;
         }
         var go = function() {
+            window.__swUserInitiated = true;   // [fix-8] فقط تبی که کاربر در آن تأیید کرده خودکار reload شود؛ تب‌های دیگر فقط اعلان می‌گیرند
             try { w.postMessage({ type: 'SKIP_WAITING' }); } catch(e) {}
-            // [fix-confirm] اگر controllerchange نیامد (مثلاً صفحه بدون کنترل‌کننده باز شده بود)، بعد از ۱.۵ ثانیه حتماً reload شود
-            setTimeout(function() { if (window.__swReloading) return; window.__swReloading = true; location.reload(); }, 1500);
+            // [fix-confirm] reload اجباری؛ [fix-9] اگر ورکر هنوز در حال فعال‌شدن است صبر می‌کنیم تا حداکثر ۶ ثانیه تا reload دوبارهٔ زودهنگام نداشته باشیم
+            var t0 = Date.now(), hardReload = function() { if (window.__swReloading) return; window.__swReloading = true; location.reload(); };
+            var tick = function() {
+                if (window.__swReloading) return;
+                var st = w.state;
+                if (st === 'activated' || st === 'redundant' || Date.now() - t0 >= 6000) { hardReload(); return; }
+                setTimeout(tick, 300);
+            };
+            setTimeout(tick, 1500);
         };
         // پیش از بارگذاری مجدد، داده‌ها کاملاً ذخیره شوند
         try { var f = realLS.flush && realLS.flush(); if (f && f.then) { f.then(go, go); return; } } catch(e) {}
@@ -8958,7 +8968,7 @@ function applyDemoReportLocks() {
         var cfg = updCfg();
         return fetch(rawUrl(cfg, 'version.json') + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.ok ? r.json() : null; }).then(function(j) {
             if (!j || j.app !== 'cmc-class-manager' || !/^\d+(\.\d+){0,2}$/.test(String(j.version)) || verCmp(j.version, APP_VERSION) <= 0) return null;
-            return { cfg: cfg, version: String(j.version), files: [], sha: (j.sha256 && typeof j.sha256 === 'object') ? j.sha256 : null, notes: Array.isArray(j.notes) ? j.notes : (j.notes ? [String(j.notes)] : []) };
+            return { version: String(j.version), sha: (j.sha256 && typeof j.sha256 === 'object') ? j.sha256 : null, notes: Array.isArray(j.notes) ? j.notes : (j.notes ? [String(j.notes)] : []) };
         }).catch(function() { return null; });
     }
     // [fix-6] پیش از فعال‌سازی، فایل صفحهٔ اصلیِ کشِ نسخهٔ جدید بررسی می‌شود (اعتبار + هم‌خوانی با نسخهٔ اعلام‌شده + sha256)؛
@@ -9000,14 +9010,12 @@ function applyDemoReportLocks() {
             });
         });
     }
-    function readUpdInputs() { return updCfg(); }
     function rawUrl(cfg, path) {
         return 'https://raw.githubusercontent.com/' + cfg.repo + '/' + encodeURI(cfg.branch) + '/' + path;
     }
     function checkUpdate(auto) {
         var btnI = document.getElementById('btnUpdInstall'); btnI.style.display = 'none'; pendingUpdate = null;
-        var cfg;
-        try { cfg = readUpdInputs(); } catch(e) { updMsg('❌ ' + e.message, 'bad'); return; }
+        var cfg = updCfg();   // [fix-11] readUpdInputs حذف شد
         if (!navigator.onLine) { updMsg('❌ اینترنت قطع است.', 'bad'); return; }
         updMsg('⏳ در حال بررسی...');
         fetch(rawUrl(cfg, 'version.json') + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r) {
@@ -9016,21 +9024,18 @@ function applyDemoReportLocks() {
             return r.json();
         }).then(function(j) {
             if (!j || j.app !== 'cmc-class-manager' || !/^\d+(\.\d+){0,2}$/.test(String(j.version))) throw new Error('این مخزن نسخهٔ معتبری از برنامه ندارد.');
-            var files = (Array.isArray(j.files) && j.files.length ? j.files : ['index.html', 'sw.js', 'manifest.json']).filter(function(f) {
-                return typeof f === 'string' && /^[\w.\-\/]+$/.test(f) && f.indexOf('..') < 0 && f.charAt(0) !== '/';
-            });
-            if (files.indexOf('index.html') < 0) throw new Error('فهرست فایل‌های نسخه ناقص است.');
+            // [fix-11] اعتبارسنجی فهرست فایل‌ها (files) حذف شد؛ دانلود فایل‌ها دیگر کار برنامه نیست و Service Worker انجامش می‌دهد
             if (verCmp(j.version, APP_VERSION) <= 0) {
                 // [fix-1] اگر SW جدیدی در انتظار است (بدون تغییر شمارهٔ نسخه)، به‌جای «به‌روز است» همان را برای تأیید نشان بده
                 var ww = window.__pendingSWWorker;
                 if (ww && ww.state === 'installed') { updMsg('🎉 به‌روزرسانی جدیدی آماده است.', 'ok'); btnI.style.display = ''; if (auto) showUpdateNotice(); else showUpdateModal(false, true); return; }
-                updMsg('✅ نسخهٔ شما (' + escapeHtml(APP_VERSION) + ') به‌روز است.', 'ok'); return;
+                updMsg('✅ نسخهٔ شما (' + escapeHtml(updFa(APP_VERSION)) + ') به‌روز است.', 'ok'); return;
             }
-            pendingUpdate = { cfg: cfg, version: String(j.version), files: files, sha: (j.sha256 && typeof j.sha256 === 'object') ? j.sha256 : null };
+            pendingUpdate = { version: String(j.version), sha: (j.sha256 && typeof j.sha256 === 'object') ? j.sha256 : null };
             var notes = Array.isArray(j.notes) ? j.notes : (j.notes ? [String(j.notes)] : []);
             pendingUpdate.notes = notes;
-            updMsg('🎉 نسخهٔ جدید <b>' + escapeHtml(j.version) + '</b> آماده است (نسخهٔ شما: ' + escapeHtml(APP_VERSION) + ').' +
-                (notes.length ? '<ul style="margin:6px 18px 0;padding:0;line-height:1.9;">' + notes.map(function(n) { return '<li>' + escapeHtml(String(n)) + '</li>'; }).join('') + '</ul>' : ''), 'ok');
+            updMsg('🎉 نسخهٔ جدید <b>' + escapeHtml(updFa(j.version)) + '</b> آماده است (نسخهٔ شما: ' + escapeHtml(updFa(APP_VERSION)) + ').' +
+                (notes.length ? '<ul style="margin:6px 18px 0;padding:0;line-height:1.9;">' + notes.map(function(n) { return '<li>' + escapeHtml(updFa(n)) + '</li>'; }).join('') + '</ul>' : ''), 'ok');
             btnI.style.display = '';
             // [update-confirm] مرورگر هم برای دریافت sw.js جدید بررسی کند (نسخه در حالت waiting می‌ماند)
             try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function(r) { if (r) r.update().catch(function() {}); }); } catch(e) {}
@@ -9167,10 +9172,13 @@ function applyDemoReportLocks() {
     // [update-confirm] نسخهٔ جدید SW در حالت waiting می‌ماند؛ اعلان در صفحهٔ اول نشان داده می‌شود و فقط با «تأیید» فعال می‌شود
     if ('serviceWorker' in navigator) {
         var swHadController = !!navigator.serviceWorker.controller;   // در نصب اول false است
-        var swTrack = function(worker) {
+        // [fix-10] اعلان برای هر ورکرِ «به‌روزرسانی» نشان داده می‌شود، چه صفحه کنترل‌کننده داشته باشد چه نه (مثلاً بعد از hard reload).
+        // تفاوت با نصب اول: در نصب اول هنوز هیچ ورکر active در رجیستریشن نیست.
+        var isUpdateWorker = function(reg, worker) { return !!(reg && worker && reg.active && reg.active !== worker); };
+        var swTrack = function(reg, worker) {
             if (!worker) return;
             var check = function() {
-                if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                if (worker.state === 'installed' && isUpdateWorker(reg, worker)) {
                     window.__pendingSWWorker = worker;
                     if (window.__swApplyWhenReady) { activateWaitingSW(worker); } else showUpdateNotice();
                 }
@@ -9178,29 +9186,41 @@ function applyDemoReportLocks() {
             worker.addEventListener('statechange', check);
             check();
         };
+        // [fix-8] تب‌های دیگر (که کاربر در آن‌ها تأیید نکرده) بدون هشدار reload نمی‌شوند؛ فقط یک نوار «بارگذاری مجدد» می‌گیرند تا فرم نیمه‌پر از بین نرود
+        var showReloadBar = function() {
+            if (document.getElementById('swReloadBar')) return;
+            var bar = document.createElement('div'); bar.id = 'swReloadBar'; bar.setAttribute('role', 'alert');
+            bar.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100001;max-width:92vw;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;padding:12px 16px;border-radius:12px;background:#334155;color:#fff;font-size:14px;line-height:1.8;box-shadow:0 6px 24px rgba(0,0,0,.3);';
+            var tx = document.createElement('span'); tx.textContent = 'نسخهٔ جدید برنامه در تب دیگری نصب شد. برای استفاده از آن، صفحه را دوباره بارگذاری کنید.';
+            var bt = document.createElement('button'); bt.className = 'btn btn-primary btn-sm'; bt.textContent = 'بارگذاری مجدد';
+            bt.addEventListener('click', function() { if (window.__swReloading) return; window.__swReloading = true; location.reload(); });
+            bar.appendChild(tx); bar.appendChild(bt); document.body.appendChild(bar);
+        };
+        // [fix-13] ثبت اولِ SW در صفحهٔ ورود (کدِ احراز هویت) عمداً حفظ شده: وقتی کاربر هنوز وارد نشده، اسکریپت اصلی اجرا نمی‌شود و
+        // فقط همان ثبت، SW را نصب می‌کند. ثبت دوباره با همان آدرس بی‌ضرر و بدون اثر است؛ شنونده‌های به‌روزرسانی فقط در همین‌جا لازم‌اند.
         // (اسکریپت اصلی ممکن است بعد از رویداد load اجرا شود؛ پس اگر load گذشته بود، بلافاصله ثبت می‌کنیم)
         var swRegister = function() {
             navigator.serviceWorker.register('./sw.js')
                 .then(function(reg) {
                     console.log('✅ Service Worker ثبت شد:', reg.scope);
                     // نسخهٔ جدید از قبل در waiting است (مثلاً بعد از بستن و بازکردن برنامه)
-                    if (reg.waiting && navigator.serviceWorker.controller) {
+                    if (isUpdateWorker(reg, reg.waiting)) {
                         window.__pendingSWWorker = reg.waiting;
                         showUpdateNotice();
                     }
-                    swTrack(reg.installing);
-                    reg.addEventListener('updatefound', function() { swTrack(reg.installing); });
+                    swTrack(reg, reg.installing);
+                    reg.addEventListener('updatefound', function() { swTrack(reg, reg.installing); });
                 })
                 .catch(function(err) {
                     console.log('❌ خطا در ثبت Service Worker:', err);
                 });
         };
         if (document.readyState === 'complete') swRegister(); else window.addEventListener('load', swRegister);
-        // وقتی SW جدید فعال شد، یک بار صفحه دوباره بارگذاری شود (نه در نصب اول)
+        // وقتی SW جدید فعال شد: تبِ تأییدکننده reload می‌شود؛ تب‌های دیگر فقط اعلان می‌گیرند؛ در نصب اول (claim) هیچ‌کاری نمی‌شود
         navigator.serviceWorker.addEventListener('controllerchange', function() {
-            if (!swHadController || window.__swReloading) return;
-            window.__swReloading = true;
-            location.reload();
+            if (window.__swReloading) return;
+            if (window.__swUserInitiated) { window.__swReloading = true; location.reload(); return; }
+            if (swHadController) showReloadBar();
         });
     }
 
