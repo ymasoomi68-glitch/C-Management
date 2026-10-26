@@ -13,3 +13,5 @@
 # فایلهای ویندوزی
 *.bat text eol=crlf
 *.cmd text eol=crlf
+# [audit-7]
+*.woff2 binary

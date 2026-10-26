@@ -11,7 +11,17 @@ const files = [
     "icon-512.png",
     "icon-maskable-512.png",
     "apple-touch-icon.png",
-    "favicon.png"
+    "favicon.png",
+    // [audit-7] فونت‌های محلی
+    "fonts/vazirmatn-arabic-400.woff2",
+    "fonts/vazirmatn-arabic-500.woff2",
+    "fonts/vazirmatn-arabic-600.woff2",
+    "fonts/vazirmatn-arabic-700.woff2",
+    "fonts/vazirmatn-latin-400.woff2",
+    "fonts/vazirmatn-latin-500.woff2",
+    "fonts/vazirmatn-latin-600.woff2",
+    "fonts/vazirmatn-latin-700.woff2",
+    "fonts/vazirmatn-fd-digits.woff2"
 ];
 
 const [v, ...notes] = process.argv.slice(2);
