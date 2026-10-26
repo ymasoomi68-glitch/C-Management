@@ -4,8 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📚 کلاس‌یار</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- [audit-7] فونت وزیرمتن به‌صورت محلی (پوشهٔ fonts) و قابل کش آفلاین؛ دیگر به Google Fonts وابسته نیست -->
+<style>
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 400; src: url('fonts/vazirmatn-arabic-400.woff2') format('woff2'); unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 400; src: url('fonts/vazirmatn-latin-400.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 500; src: url('fonts/vazirmatn-arabic-500.woff2') format('woff2'); unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 500; src: url('fonts/vazirmatn-latin-500.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 600; src: url('fonts/vazirmatn-arabic-600.woff2') format('woff2'); unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 600; src: url('fonts/vazirmatn-latin-600.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 700; src: url('fonts/vazirmatn-arabic-700.woff2') format('woff2'); unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
+@font-face { font-family: 'Vazirmatn'; font-style: normal; font-display: swap; font-weight: 700; src: url('fonts/vazirmatn-latin-700.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+/* [audit-10] فقط ارقام لاتین (U+0030-0039) را با شکل فارسی نشان می‌دهد؛ مقدار ذخیره‌شده تغییری نمی‌کند */
+@font-face { font-family: 'VazirDigits'; font-style: normal; font-display: swap; font-weight: 400 700; src: url('fonts/vazirmatn-fd-digits.woff2') format('woff2'); unicode-range: U+0030-0039; }
+</style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0d9488">
 <meta name="cm-app" content="class-manager">
@@ -32,7 +43,16 @@ window.CMStore = (function(){
 
     function keysArr(){ return keysCache || (keysCache = Object.keys(mem)); }
     function mine(k){ for(var i=0;i<PREFIXES.length;i++) if(k.indexOf(PREFIXES[i])===0) return true; return false; }
-    function persist(k, op){ dirty[k] = op; if(!flushing) flushing = Promise.resolve().then(run); }
+    // [audit-3] همگام‌سازی بین تب‌ها: هر تغییر به تب‌های دیگر هم‌مبدأ اعلام می‌شود (قبلاً هر تب فقط حافظهٔ خودش را داشت و آخرین نوشتن، کار تب دیگر را پاک می‌کرد)
+    var bc = null, TAB_ID = Math.random().toString(36).slice(2);
+    try { if(window.BroadcastChannel) bc = new BroadcastChannel('classyar-store'); } catch(e){ bc = null; }
+    function persist(k, op){ dirty[k] = op; if(!flushing) flushing = Promise.resolve().then(run); try { if(bc) bc.postMessage({ t: TAB_ID, k: k, v: op }); } catch(e){} }
+    if(bc) bc.onmessage = function(ev){
+        var d = ev && ev.data; if(!d || d.t === TAB_ID || typeof d.k !== 'string' || !mine(d.k)) return;
+        if(d.v === null){ if(d.k in mem){ delete mem[d.k]; keysCache = null; } }
+        else { if(!(d.k in mem)) keysCache = null; mem[d.k] = d.v; }
+        try { if(api.onExternal) api.onExternal(d.k, d.v); } catch(e){ console.error(e); }
+    };
     async function run(){
         try {
             for(;;){
@@ -57,7 +77,7 @@ window.CMStore = (function(){
         clear: function(){ Object.keys(mem).forEach(function(k){ api.removeItem(k); }); },
         flush: function(){ return (flushing || Promise.resolve()).then(function(){}); },   // صبر تا همهٔ نوشتن‌ها روی دیسک بنشیند
         get mode(){ return mode; },
-        quota: 0, onError: null, ready: null
+        quota: 0, onError: null, onExternal: null, ready: null
     };
 
     api.ready = (async function(){
@@ -280,10 +300,18 @@ window.CMStore = (function(){
     }
     .att-dateinput {
         display: block; width: 100%; border: none; background: transparent; color: var(--text);
-        font-family: inherit; font-size: 20px; font-weight: 800; text-align: center; outline: none; cursor: pointer; padding: 2px 0;
+        font-family: 'VazirDigits', 'Vazirmatn', Tahoma, sans-serif; font-size: 20px; font-weight: 800; text-align: center; outline: none; cursor: pointer; padding: 2px 0;   /* [audit-10] */
     }
     .att-weekday { font-size: 13px; font-weight: 600; color: var(--primary); min-height: 20px; }
     .att-nav { white-space: nowrap; }
+    /* [audit-9] در موبایل، دکمهٔ «امروز» وقتی مخفی است جای خالی نگیرد */
+    @media (max-width: 600px) {
+        .att-today[style*="visibility: hidden"], .att-today[style*="visibility:hidden"] { display: none; }
+        /* [audit-8] جدول دانش‌آموزان در موبایل جمع‌وجورتر تا ستون «عملیات» بیرون نماند */
+        table.data-table th, table.data-table td { padding: 8px 5px; }
+        table.data-table td { font-size: 12px; }
+        table.data-table .actions-cell { flex-direction: column; gap: 4px; }
+    }
     @media (max-width: 520px) {
         .att-datebar { gap: 6px; }
         .att-datebox { min-width: 0; padding: 8px 10px 10px; }
@@ -2220,7 +2248,7 @@ window.CMStore = (function(){
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۲۰</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۲۱</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -3406,8 +3434,11 @@ var CMPDF = (function(){
         } catch(e) { return '1404/01/01'; }
     }
 
+    // [audit-1] شمارندهٔ افزایشی: در ورود دسته‌ای (اکسل/PDF) چند شناسه در یک میلی‌ثانیه ساخته می‌شود و فقط عدد تصادفی ۰..۹۹۹۹ کافی نبود
+    var __idSeq = 0;
     function genId() {
-        return 'id_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+        __idSeq = (__idSeq + 1) % 1000000;
+        return 'id_' + Date.now() + '_' + __idSeq + '_' + Math.floor(Math.random() * 10000);
     }
 
     /* ═══════════════════════════════════════════════════
@@ -3613,7 +3644,9 @@ var CMPDF = (function(){
                     sortClassStudents(c);
                     if ((c.students || []).map(function(x) { return x.id; }).join(',') !== before) resorted = true;
                 });
-                if (purged || resorted) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e2) {} }
+                var dupFixed = dedupeStudentIds();   // [audit-1]
+                if (dupFixed) setTimeout(function() { try { updToast('⚠️ ' + toPersianNum(dupFixed) + ' شناسهٔ تکراریِ دانش‌آموز اصلاح شد. حضور و نمرات این دانش‌آموزان را یک بار بررسی کنید.', 'bad'); } catch(e3) {} }, 2500);
+                if (purged || resorted || dupFixed) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e2) {} }
             }
         } catch(e) {
             console.error('خطا در بارگذاری:', e);
@@ -3624,6 +3657,69 @@ var CMPDF = (function(){
     function saveData() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
         catch(e) { alert('⚠️ خطا در ذخیره‌سازی: ' + e.message); }
+    }
+
+    // [audit-1] ترمیم شناسه‌های تکراریِ دانش‌آموزان (ساخته‌شده توسط ورود دسته‌ای نسخه‌های قبل): دومی به بعد شناسهٔ تازه می‌گیرد
+    // تا ثبت حضور/نمرهٔ یک دانش‌آموز دیگر روی دانش‌آموز دیگری اثر نگذارد.
+    function dedupeStudentIds() {
+        var fixed = 0;
+        (appData.classes || []).forEach(function(c) {
+            var seen = {};
+            (c.students || []).forEach(function(st) {
+                if (!st) return;
+                if (!st.id || seen[st.id]) { st.id = genId(); fixed++; }
+                seen[st.id] = true;
+            });
+        });
+        return fixed;
+    }
+
+    // [audit-2][audit-6] داده‌های حضور/نمرات/رفتار/تکالیف با «نام کلاس» کلید می‌خورند؛ این توابع آن‌ها را هنگام تغییر نام/حذف کلاس یا دانش‌آموز هم‌گام می‌کنند.
+    function classNameUsedByOther(name, exceptIdx) {
+        return appData.classes.some(function(c, i) { return i !== exceptIdx && c.className === name; });
+    }
+    function movePrefixKeys(obj, oldP, newP, copyOnly) {
+        Object.keys(obj || {}).forEach(function(k) {
+            if (k.indexOf(oldP) !== 0) return;
+            var nk = newP + k.substring(oldP.length);
+            obj[nk] = copyOnly ? JSON.parse(JSON.stringify(obj[k])) : obj[k];
+            if (!copyOnly) delete obj[k];
+        });
+    }
+    function renameClassData(oldName, newName, copyOnly) {
+        if (!oldName || oldName === newName) return;
+        movePrefixKeys(attendanceData, oldName + '|', newName + '|', copyOnly);
+        movePrefixKeys(gradesData, oldName + '|', newName + '|', copyOnly);
+        movePrefixKeys(gradeNotes, oldName + '|', newName + '|', copyOnly);
+        [behaviorsData, homeworkData].forEach(function(o) {
+            if (o && o[oldName] !== undefined) { o[newName] = copyOnly ? JSON.parse(JSON.stringify(o[oldName])) : o[oldName]; if (!copyOnly) delete o[oldName]; }
+        });
+        saveAttendance(); saveGrades(); saveGradeNotes(); saveBehaviors(); saveHomework();
+    }
+    function purgeClassData(className) {
+        if (!className) return;
+        var p = className + '|';
+        [attendanceData, gradesData, gradeNotes].forEach(function(o) { Object.keys(o || {}).forEach(function(k) { if (k.indexOf(p) === 0) delete o[k]; }); });
+        delete behaviorsData[className]; delete homeworkData[className];
+        saveAttendance(); saveGrades(); saveGradeNotes(); saveBehaviors(); saveHomework();
+    }
+    function purgeStudentData(className, ids) {
+        if (!className || !ids || !ids.length) return;
+        var p = className + '|', set = {};
+        ids.forEach(function(i) { set[i] = true; });
+        Object.keys(attendanceData || {}).forEach(function(k) {
+            if (k.indexOf(p) !== 0) return;
+            ids.forEach(function(i) { delete attendanceData[k][i]; });
+            if (!Object.keys(attendanceData[k]).length) delete attendanceData[k];
+        });
+        Object.keys(gradesData || {}).forEach(function(k) {
+            if (k.indexOf(p) !== 0) return;
+            ids.forEach(function(i) { delete gradesData[k][i]; });
+            if (!Object.keys(gradesData[k]).length) { delete gradesData[k]; delete gradeNotes[k]; }
+        });
+        if (behaviorsData[className]) behaviorsData[className] = behaviorsData[className].filter(function(b) { return !set[b.studentId]; });
+        (homeworkData[className] || []).forEach(function(h) { if (h && h.status) ids.forEach(function(i) { delete h.status[i]; }); });
+        saveAttendance(); saveGrades(); saveGradeNotes(); saveBehaviors(); saveHomework();
     }
 
     /* ═══════════════════════════════════════════════════
@@ -3732,6 +3828,7 @@ function applyDemoReportLocks() {
         document.body.classList.toggle('dark');
         var isDark = document.body.classList.contains('dark');
         this.textContent = isDark ? '☀️' : '🌙';
+        try { var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute('content', isDark ? '#0f172a' : '#0d9488'); } catch(e) {}   // [audit-11]
         try { localStorage.setItem('cmc_theme', isDark ? 'dark' : 'light'); CMStore.setItem('cmcauth_theme', isDark ? 'dark' : 'light'); } catch(e) {}
     });
 
@@ -3869,7 +3966,13 @@ function applyDemoReportLocks() {
             return;
         }
 
+        // [audit-6] نام کلاس کلید دادهٔ حضور/نمرات/رفتار/تکالیف است؛ یکتا بودن و نبودن «|» الزامی است
+        if (name.indexOf('|') >= 0) { alert('❌ نام کلاس نباید شامل نویسهٔ «|» باشد.'); return; }
+        if (classNameUsedByOther(name, editingClassIndex)) { alert('❌ کلاسی با این نام از قبل وجود دارد. برای جداکردن اطلاعات، نام متفاوتی انتخاب کنید (مثلاً «الف ۲»).'); return; }
         if (editingClassIndex >= 0) {
+            // [audit-2] با تغییر نام، اطلاعات ثبت‌شدهٔ کلاس هم به نام جدید منتقل شود
+            var oldClsName = appData.classes[editingClassIndex].className;
+            if (oldClsName !== name) renameClassData(oldClsName, name, classNameUsedByOther(oldClsName, editingClassIndex));
             appData.classes[editingClassIndex].className = name;
             appData.classes[editingClassIndex].gradeName = grade;
         } else {
@@ -3884,8 +3987,9 @@ function applyDemoReportLocks() {
     function deleteClass(index) {
         var cls = appData.classes[index];
         if (!cls) return;
-        if (!confirm('حذف کلاس «' + cls.className + '» با ' + (cls.students || []).length + ' دانش‌آموز؟')) return;
+        if (!confirm('حذف کلاس «' + cls.className + '» با ' + (cls.students || []).length + ' دانش‌آموز؟\nحضور و غیاب، نمرات، رفتار و تکالیف این کلاس هم پاک می‌شود.')) return;
         appData.classes.splice(index, 1);
+        if (!classNameUsedByOther(cls.className, -1)) purgeClassData(cls.className);   // [audit-6]
         saveData();
         renderClasses();
     }
@@ -4139,8 +4243,9 @@ function applyDemoReportLocks() {
         if (!cls) return;
         var s = cls.students[index];
         if (!s) return;
-        if (!confirm('حذف «' + s.family + ' ' + s.name + '»؟')) return;
+        if (!confirm('حذف «' + s.family + ' ' + s.name + '»؟\nحضور و غیاب، نمرات و رفتار ثبت‌شدهٔ این دانش‌آموز هم پاک می‌شود.')) return;
         cls.students.splice(index, 1);
+        purgeStudentData(cls.className, [s.id]);   // [audit-6]
         saveData();
         renderStudents();
         renderClasses();
@@ -4646,6 +4751,41 @@ function applyDemoReportLocks() {
         document.getElementById('btnDoPdfImport').disabled = pdfRows.length === 0;
     }
 
+    // [audit-5] ورود لیست دانش‌آموزان. در حالت «جایگزینی»، دانش‌آموزی که در لیست جدید هم هست (کد ملی یا نام+نام‌خانوادگی+پدر یکسان)
+    // شناسهٔ قبلی‌اش را نگه می‌دارد تا سابقهٔ حضور/نمراتش از بین نرود؛ فقط دانش‌آموزانِ غایب در لیست جدید حذف (و دادهٔ آن‌ها پاک) می‌شوند.
+    function importStudentsInto(cls, list, mode) {
+        var existing = (cls.students || []).slice(), base = [], added = 0, skipped = 0, kept = 0, removed = 0;
+        var same = function(a, b) {
+            if (a.codemelli && b.codemelli) return a.codemelli === b.codemelli;
+            return a.name === b.name && a.family === b.family && (a.father || '') === (b.father || '');
+        };
+        if (mode === 'replace') {
+            var pool = existing.slice();
+            list.forEach(function(st) {
+                if (base.some(function(x) { return same(x, st); })) { skipped++; return; }
+                var hit = -1;
+                for (var i = 0; i < pool.length; i++) { if (same(pool[i], st)) { hit = i; break; } }
+                if (hit >= 0) { var old = pool.splice(hit, 1)[0]; base.push(Object.assign({}, old, { name: st.name, family: st.family, father: st.father, codemelli: st.codemelli || old.codemelli || '' })); kept++; }
+                else { base.push({ id: genId(), name: st.name, family: st.family, father: st.father, codemelli: st.codemelli }); added++; }
+            });
+            removed = pool.length;
+            purgeStudentData(cls.className, pool.map(function(x) { return x.id; }));
+        } else {
+            base = existing;
+            list.forEach(function(st) {
+                if (base.some(function(x) { return same(x, st); })) { skipped++; return; }
+                base.push({ id: genId(), name: st.name, family: st.family, father: st.father, codemelli: st.codemelli }); added++;
+            });
+        }
+        cls.students = base; sortClassStudents(cls);
+        return { added: added, skipped: skipped, kept: kept, removed: removed };
+    }
+    function importSummary(r) {
+        return '✅ ' + toPersianNum(r.added) + ' دانش‌آموز وارد شد.' + (r.kept ? '\n' + toPersianNum(r.kept) + ' دانش‌آموز موجود با سابقهٔ قبلی حفظ شد.' : '') +
+            (r.removed ? '\n' + toPersianNum(r.removed) + ' دانش‌آموز که در لیست جدید نبودند حذف شدند.' : '') +
+            (r.skipped ? '\n' + toPersianNum(r.skipped) + ' مورد تکراری نادیده گرفته شد.' : '');
+    }
+
     document.getElementById('btnPdfImport').addEventListener('click', function() {
         if (DEMO_MODE) { alert('🔒 این قابلیت در نسخهٔ آزمایشی غیرفعال است.' + DEMO_MSG); return; }
         if (appData.classes.length === 0) { alert('❌ ابتدا یک کلاس بسازید.'); return; }
@@ -4702,21 +4842,11 @@ function applyDemoReportLocks() {
         if (!list.length) return;
         var mode = document.getElementById('pdfMode').value;
         if (mode === 'replace' && (cls.students || []).length > 0) {
-            if (!confirm('لیست فعلی ' + cls.students.length + ' دانش‌آموز پاک و با لیست جدید جایگزین می‌شود. مطمئنید؟')) return;
+            if (!confirm('لیست فعلی ' + cls.students.length + ' دانش‌آموز با لیست جدید جایگزین می‌شود.\nسابقهٔ دانش‌آموزانی که در هر دو لیست هستند حفظ می‌شود؛ دانش‌آموزانی که در لیست جدید نیستند همراه با حضور و نمراتشان حذف می‌شوند. مطمئنید؟')) return;
         }
-        var base = mode === 'replace' ? [] : (cls.students || []).slice(), added = 0, skipped = 0;
-        list.forEach(function(r) {
-            var st = { name: r.name.trim(), family: r.family.trim(), father: (r.father || '').trim(), codemelli: (r.codemelli || '').trim() };
-            var dup = base.some(function(x) {
-                if (st.codemelli && x.codemelli) return x.codemelli === st.codemelli;
-                return x.name === st.name && x.family === st.family && (x.father || '') === st.father;
-            });
-            if (dup) { skipped++; return; }
-            st.id = genId(); base.push(st); added++;
-        });
-        cls.students = base; sortClassStudents(cls);
+        var res = importStudentsInto(cls, list.map(function(r) { return { name: r.name.trim(), family: r.family.trim(), father: (r.father || '').trim(), codemelli: (r.codemelli || '').trim() }; }), mode);   // [audit-5]
         saveData(); renderClasses(); closeModal('modalPdf'); selectClassInStudentPage(idx);
-        alert('✅ ' + toPersianNum(added) + ' دانش‌آموز وارد شد.' + (skipped ? '\n' + toPersianNum(skipped) + ' مورد تکراری نادیده گرفته شد.' : ''));
+        alert(importSummary(res));
     });
 
 
@@ -4755,25 +4885,14 @@ function applyDemoReportLocks() {
                 var cls = appData.classes[idx];
                 var mode = document.getElementById('excelMode').value;
                 if (mode === 'replace' && (cls.students || []).length > 0) {
-                    if (!confirm('لیست فعلی ' + cls.students.length + ' دانش‌آموز پاک و با لیست جدید جایگزین می‌شود. مطمئنید؟')) return;
+                    if (!confirm('لیست فعلی ' + cls.students.length + ' دانش‌آموز با لیست جدید جایگزین می‌شود.\nسابقهٔ دانش‌آموزانی که در هر دو لیست هستند حفظ می‌شود؛ دانش‌آموزانی که در لیست جدید نیستند همراه با حضور و نمراتشان حذف می‌شوند. مطمئنید؟')) return;
                 }
-                var base = mode === 'replace' ? [] : (cls.students || []).slice();
-                var added = 0, skipped = 0;
-                list.forEach(function(st) {
-                    var dup = base.some(function(x) {
-                        if (st.codemelli && x.codemelli) return x.codemelli === st.codemelli;
-                        return x.name === st.name && x.family === st.family && (x.father || '') === (st.father || '');
-                    });
-                    if (dup) { skipped++; return; }
-                    base.push({ id: genId(), name: st.name, family: st.family, father: st.father, codemelli: st.codemelli });
-                    added++;
-                });
-                cls.students = base; sortClassStudents(cls);
+                var res = importStudentsInto(cls, list.map(function(st) { return { name: st.name, family: st.family, father: st.father, codemelli: st.codemelli }; }), mode);   // [audit-5]
                 saveData();
                 renderClasses();
                 closeModal('modalExcel');
                 selectClassInStudentPage(idx);
-                alert('✅ ' + toPersianNum(added) + ' دانش‌آموز وارد شد.' + (skipped ? '\n' + toPersianNum(skipped) + ' مورد تکراری نادیده گرفته شد.' : ''));
+                alert(importSummary(res));
             }).catch(function(e) { alert('❌ ' + (e && e.message ? e.message : 'خطا در خواندن فایل')); });
         };
         reader.readAsArrayBuffer(file);
@@ -8551,6 +8670,14 @@ function applyDemoReportLocks() {
             if (parsed.academicYear && parsed.academicYear !== yearsState.current) {
                 yrNote += '\n⚠️ این فایل مربوط به سال تحصیلی ' + yearLabel(parsed.academicYear) + ' است.';
             }
+            // [audit-4] اعتبارسنجی ساختار: نوع هر بخش باید درست باشد تا فایل خراب/ناقص داده را مخدوش نکند
+            var isObj = function(v) { return v && typeof v === 'object' && !Array.isArray(v); };
+            var badSec = [];
+            if (parsed.appData && !(isObj(parsed.appData) && (parsed.appData.classes === undefined || Array.isArray(parsed.appData.classes)))) badSec.push('appData');
+            if (!parsed.appData && parsed.classes && !Array.isArray(parsed.classes)) badSec.push('classes');
+            ['attendanceData','gradesData','behaviorsData','homeworkData','gradeNotes'].forEach(function(k) { if (parsed[k] !== undefined && parsed[k] !== null && !isObj(parsed[k])) badSec.push(k); });
+            if (parsed.subjectsList !== undefined && parsed.subjectsList !== null && !Array.isArray(parsed.subjectsList)) badSec.push('subjectsList');
+            if (badSec.length) { alert('❌ ساختار فایل پشتیبان معتبر نیست (بخش‌های خراب: ' + badSec.join('، ') + '). بازیابی انجام نشد.'); return; }
             if (!confirm('⚠️ بازیابی از پشتیبان:\n\nهمهٔ داده‌های فعلیِ این سال تحصیلی پاک می‌شوند و داده‌های فایل جایگزین می‌شوند.' + yrNote + '\n\nمطمئنی؟')) return;
 
             try {
@@ -8563,6 +8690,12 @@ function applyDemoReportLocks() {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
                 }
 
+                // [audit-4] بخش‌هایی که در فایل نیستند خالی می‌شوند (قبلاً داده‌های قدیمیِ این بخش‌ها با کلاس‌های جدید ترکیب می‌شد)
+                if (!parsed.attendanceData) parsed.attendanceData = {};
+                if (!parsed.gradesData) parsed.gradesData = {};
+                if (!parsed.behaviorsData) parsed.behaviorsData = {};
+                if (!parsed.homeworkData) parsed.homeworkData = {};
+                if (!parsed.gradeNotes) parsed.gradeNotes = {};
                 if (parsed.attendanceData) {
                     attendanceData = parsed.attendanceData;
                     migrateAttendance();
@@ -8603,8 +8736,10 @@ function applyDemoReportLocks() {
                     saveSettings();
                 }
 
+                if (dedupeStudentIds()) { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }   // [audit-1]
                 alert('✅ بازیابی با موفقیت انجام شد!\n\nصفحه رفرش می‌شود...');
-                location.reload();
+                // [audit-4] تا پایان نوشتن روی IndexedDB صبر شود، وگرنه ریلود می‌تواند بخشی از داده‌های بازیابی‌شده را از بین ببرد
+                (window.CMStore ? CMStore.flush() : Promise.resolve()).then(function() { location.reload(); }, function() { location.reload(); });
             } catch(err) {
                 alert('❌ خطا در بازیابی: ' + err.message);
             }
@@ -8823,7 +8958,7 @@ function applyDemoReportLocks() {
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.20';
+    var APP_VERSION = '4.6.21';
     var realLS = window.CMStore;   // [fix-11] UPD_KEY حذف شد (بدون استفاده)
     var pendingUpdate = null;
 
@@ -9306,6 +9441,31 @@ function applyDemoReportLocks() {
     loadBehaviors();
     loadHomework();
     loadSettings();
+    // [audit-3] تغییر داده‌ها در تب دیگر: متغیرهای حافظه را از ذخیره‌گاه دوباره بخوان تا ذخیرهٔ بعدیِ این تب، کار تب دیگر را پاک نکند
+    (function() {
+        var map = [
+            [STORAGE_KEY, function() { loadData(); renderClasses(); }],
+            [ATT_STORAGE_KEY, function() { loadAttendance(); }],
+            [GRADES_STORAGE_KEY, function() { loadGrades(); }],
+            [SUBJECTS_STORAGE_KEY, function() { loadSubjects(); }],
+            [GRADENOTES_KEY, function() { loadGradeNotes(); }],
+            [BEHAVIORS_STORAGE_KEY, function() { loadBehaviors(); }],
+            [HOMEWORK_STORAGE_KEY, function() { loadHomework(); }],
+            [CUSTOM_REASONS_KEY, function() { loadCustomReasons(); }],
+            [SETTINGS_KEY, function() { loadSettings(); }]
+        ];
+        var timer = null, pending = {};
+        window.CMStore.onExternal = function(k, v) {
+            map.forEach(function(m, i) {
+                if (k.length >= m[0].length && k.slice(-m[0].length) === m[0] && localStorage.getItem(m[0]) === v) pending[i] = true;
+            });
+            if (timer) return;
+            timer = setTimeout(function() {
+                timer = null; var p = pending; pending = {};
+                Object.keys(p).forEach(function(i) { try { map[i][1](); } catch(e) { console.error(e); } });
+            }, 150);
+        };
+    })();
     applyFontSize(appSettings.fontSize);
     initBackupReminder();   // [backup-reminder]
     applyDemoReportLocks();   // [demo-upgrade] در دمو، چاپ/دانلود گزارش‌ها غیرفعال
@@ -9315,6 +9475,7 @@ function applyDemoReportLocks() {
         if (savedTheme === 'dark') {
             document.body.classList.add('dark');
             document.getElementById('btnTheme').textContent = '☀️';
+            try { var tc2 = document.querySelector('meta[name="theme-color"]'); if (tc2) tc2.setAttribute('content', '#0f172a'); } catch(e) {}   // [audit-11]
         }
         refreshHome();
     } catch(e) {}

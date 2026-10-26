@@ -2,7 +2,7 @@
    📱 Service Worker - کلاس‌یار
    ═══════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'cmc-app-v24';
+var CACHE_NAME = 'cmc-app-v25';
 var CACHE_PREFIX = 'cmc-app-'; // فقط کش‌های همین برنامه؛ به کش برنامه‌های دیگرِ همین دامنه دست نمی‌زنیم
 var CACHE_FILES = [
     './',
@@ -12,7 +12,17 @@ var CACHE_FILES = [
     './icon-512.png',
     './icon-maskable-512.png',
     './apple-touch-icon.png',
-    './favicon.png'
+    './favicon.png',
+    // [audit-7] فونت‌های محلی (اختیاری: شکست دانلودشان نصب را خراب نمی‌کند)
+    './fonts/vazirmatn-arabic-400.woff2',
+    './fonts/vazirmatn-arabic-500.woff2',
+    './fonts/vazirmatn-arabic-600.woff2',
+    './fonts/vazirmatn-arabic-700.woff2',
+    './fonts/vazirmatn-latin-400.woff2',
+    './fonts/vazirmatn-latin-500.woff2',
+    './fonts/vazirmatn-latin-600.woff2',
+    './fonts/vazirmatn-latin-700.woff2',
+    './fonts/vazirmatn-fd-digits.woff2'
 ];
 
 // ===== نصب =====
