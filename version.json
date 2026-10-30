@@ -1,8 +1,8 @@
 {
   "app": "cmc-class-manager",
-  "version": "4.6.21",
+  "version": "4.6.22",
   "notes": [
-    "Fix buges"
+    "Add chart modal and image downloads"
   ],
   "files": [
     "index.html",
@@ -24,8 +24,8 @@
     "fonts/vazirmatn-fd-digits.woff2"
   ],
   "sha256": {
-    "index.html": "ed49f17a88f568b5994c6a2f5a7f1973ca193668ccaee15030dbf8676be70115",
-    "sw.js": "3f7bf66e7f89d7a5e67fa268b88c44ccde8545a682cefccd99846a6dfea8df61",
+    "index.html": "091460d70dfb9cdacd8941ae78fc42369134914d6977267b27e94537034e9f9d",
+    "sw.js": "c4fdc3fd03250dac470914a213004ba973a0d287c31e9baff0c32f36508d1b10",
     "manifest.json": "be4657fcb248f44a0e8768646cfc5633a32e60f5b15a44b9519ee20a31b4e829",
     "icon-192.png": "3f64317aeee7b9ef82f534529ecea3a70b0f722bcf5d1c702805e5c070617953",
     "icon-512.png": "5ecb36a9a9ed9098b9110eb7a51b336e7ef5883931c942d60791847dafa49eb9",

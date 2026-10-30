@@ -311,7 +311,13 @@ window.CMStore = (function(){
         table.data-table th, table.data-table td { padding: 8px 5px; }
         table.data-table td { font-size: 12px; }
         table.data-table .actions-cell { flex-direction: column; gap: 4px; }
+        /* [mobile-table] نام پدر و کد ملی زیر نام؛ جدول سه‌ستونه و بدون اسکرول افقی */
+        table.data-table .st-extra { display: none; }
+        table.data-table th:last-child, table.data-table td:last-child { width: 1%; white-space: nowrap; }   /* [mobile-table] ستون عملیات فقط به اندازهٔ دکمه‌ها */
+        table.data-table .st-sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: break-word; }
+        table.data-table .st-sub:empty { display: none; }
     }
+    .st-sub { display: none; }
     @media (max-width: 520px) {
         .att-datebar { gap: 6px; }
         .att-datebox { min-width: 0; padding: 8px 10px 10px; }
@@ -492,6 +498,17 @@ window.CMStore = (function(){
     .desc-btn.selected[data-level="3"] { background: #f59e0b; border-color: #f59e0b; color: white; }
     .desc-btn.selected[data-level="4"] { background: #ef4444; border-color: #ef4444; color: white; }
 
+    /* [chart-modal] مودال نمودار نمرات */
+    .gc-wrap { display: flex; flex-direction: column; gap: 14px; }
+    .gc-box { border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: var(--card); }
+    .gc-box h3 { font-size: 13px; margin: 0 0 6px; }
+    .gc-pie { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+    .gc-pie svg { width: 150px; height: 150px; }
+    .gc-legend { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+    .gc-legend span { display: flex; align-items: center; gap: 6px; }
+    .gc-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    .gc-legend b { margin-inline-start: auto; padding-inline-start: 12px; }
+    .gc-box svg.gc-bar { width: 100%; height: auto; display: block; direction: ltr; }
     .grade-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
     .gs-chip {
         background: var(--card); border: 1px solid var(--border);
@@ -1716,8 +1733,9 @@ window.CMStore = (function(){
                 </select>
                 <button class="btn btn-primary btn-sm" id="btnAddStudent">➕ افزودن دانش‌آموز</button>
                 <button class="btn btn-success btn-sm" id="btnPrintClass">🖨️ چاپ / PDF لیست کلاس</button>
-                <button class="btn btn-outline btn-sm" id="btnExcelImport">📋 ورود لیست از اکسل</button>
-                <button class="btn btn-outline btn-sm" id="btnPdfImport">📄 ورود لیست از PDF</button>
+                <!-- [chart-color] دکمه‌های ورود از اکسل/PDF، پاک‌کردن‌ها، گزارش‌ها و افزودن درس: از btn-outline به کلاس‌های رنگی تغییر کرد (id ها بدون تغییر) -->
+                <button class="btn btn-success btn-sm" id="btnExcelImport">📋 ورود لیست از اکسل</button>
+                <button class="btn btn-danger btn-sm" id="btnPdfImport">📄 ورود لیست از PDF</button>
             </div>
 
             <div class="toolbar">
@@ -1796,9 +1814,9 @@ window.CMStore = (function(){
 
             <div class="toolbar" id="attToolbar" style="display:none;">
                 <button class="btn btn-success btn-sm" id="btnAllPresent">✅ همه حاضر</button>
-                <button class="btn btn-outline btn-sm" id="btnAllReset">🔄 پاک کردن</button>
-                <button class="btn btn-primary btn-sm" id="btnAttSave">💾 ذخیره</button>
-                <button class="btn btn-outline btn-sm" id="btnAttReport">📊 گزارش ماهانه</button>
+                <button class="btn btn-danger btn-sm" id="btnAllReset">🔄 پاک کردن</button>
+                <!-- [remove-att-save] دکمهٔ «ذخیره» حذف شد؛ حضور و غیاب با هر کلیک خودکار ذخیره می‌شود -->
+                <button class="btn btn-primary btn-sm" id="btnAttReport">📊 گزارش ماهانه</button>
             </div>
 
             <div id="attendanceContainer">
@@ -1842,7 +1860,7 @@ window.CMStore = (function(){
             <div class="card" style="padding:12px;">
                 <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📚 درس‌ها:</div>
                 <div id="subjectsList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-                <button class="btn btn-outline btn-sm" id="btnAddSubject" style="margin-top:8px;">➕ افزودن درس</button>
+                <button class="btn btn-success btn-sm" id="btnAddSubject" style="margin-top:8px;">➕ افزودن درس</button>
             </div>
 
             <div class="grade-summary" id="gradeDashboard" style="display:none;">
@@ -1855,7 +1873,8 @@ window.CMStore = (function(){
 
             <div class="toolbar" id="gradeToolbar" style="display:none;">
                 <button class="btn btn-success btn-sm" id="btnGradeAllGood" title="فقط برای دانش‌آموزانی که هنوز نمره ندارند">🌟 همه «خیلی خوب» (خالی‌ها)</button>
-                <button class="btn btn-outline btn-sm" id="btnGradePrintDay">🖨️ چاپ نمرات روز</button>
+                <button class="btn btn-primary btn-sm" id="btnGradePrintDay">🖨️ چاپ نمرات روز</button>
+                <button class="btn btn-success btn-sm" id="btnGradeChart">📊 نمودار نمرات</button><!-- [chart-modal] -->
                 <button class="btn btn-primary btn-sm" id="btnGradeMonthlyReport">📊 گزارش ماهانه</button>
                 <button class="btn btn-danger btn-sm" id="btnGradeClearDay">🗑️ پاک کردن این روز</button>
             </div>
@@ -1913,7 +1932,7 @@ window.CMStore = (function(){
             <div class="toolbar" id="behaviorToolbar" style="display:none;">
                 <button class="btn btn-success btn-sm" id="btnAddBehavior">➕ ثبت رفتار جدید</button>
                 <button class="btn btn-primary btn-sm" id="btnBehaviorReport">📊 گزارش رفتار کلاس</button>
-                <button class="btn btn-outline btn-sm" id="btnBehaviorResetClass">🗑️ پاک کردن رفتار این کلاس</button>
+                <button class="btn btn-danger btn-sm" id="btnBehaviorResetClass">🗑️ پاک کردن رفتار این کلاس</button>
             </div>
 
             <div id="behaviorsContainer">
@@ -1950,7 +1969,7 @@ window.CMStore = (function(){
                     <input type="text" class="form-input" id="hwFromDate" style="max-width:140px;" placeholder="از ابتدا 📅">
                     <label class="form-label" style="margin:0;">تا تاریخ:</label>
                     <input type="text" class="form-input" id="hwToDate" style="max-width:140px;" placeholder="تا انتها 📅">
-                    <button class="btn btn-outline btn-sm" id="btnHwResetFilter">🔄 پاک کردن</button>
+                    <button class="btn btn-danger btn-sm" id="btnHwResetFilter">🔄 پاک کردن</button>
                     <button class="btn btn-primary btn-sm" id="btnHwClassReport">📊 گزارش تکالیف کلاس</button>
                 </div>
 
@@ -2024,6 +2043,7 @@ window.CMStore = (function(){
                 <button class="btn btn-outline btn-sm" id="btnReportReset">🔄 پاک کردن فیلتر</button>
                 <button class="btn btn-primary btn-sm" id="btnReportPrintAll">🖨️ چاپ همه کارنامه‌ها</button>
                 <button class="btn btn-success btn-sm" id="btnReportDownloadAll">⬇️ دانلود PDF کارنامه‌ها</button>
+                <button class="btn btn-success btn-sm" id="btnReportDownloadImages">🖼️ دانلود عکس کارنامه‌ها</button><!-- [report-images] -->
             </div>
 
             <!-- تب‌ها -->
@@ -2241,14 +2261,14 @@ window.CMStore = (function(){
                     <button class="btn btn-outline btn-sm" id="btnClearAttendance" style="width:100%;margin-bottom:8px;">🗑️ پاک کردن همهٔ حضور و غیاب</button>
                     <button class="btn btn-outline btn-sm" id="btnClearGrades" style="width:100%;margin-bottom:8px;">🗑️ پاک کردن همهٔ نمرات</button>
                     <button class="btn btn-outline btn-sm" id="btnClearBehaviors" style="width:100%;margin-bottom:8px;">🗑️ پاک کردن همهٔ رفتارها</button>
-                    <button class="btn btn-outline btn-sm" id="btnClearHomework" style="width:100%;margin-bottom:8px;">🗑️ پاک کردن همهٔ تکالیف</button>
+                    <button class="btn btn-danger btn-sm" id="btnClearHomework" style="width:100%;margin-bottom:8px;">🗑️ پاک کردن همهٔ تکالیف</button>
                     <button class="btn btn-danger" id="btnFullReset" style="width:100%;">🗑️ ریست کامل اپ</button>
                 </div>
 
             </div>
 
             <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:20px;padding:16px;border-top:1px dashed var(--border);">
-                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۲۱</span><br>
+                📚 کلاس‌یار - نسخهٔ <span id="appVersionLabel">۴.۶.۲۲</span><br>
                 🎨 طراح: یوسف معصومی
             </div>
         </div>
@@ -2400,6 +2420,19 @@ window.CMStore = (function(){
 </div>
 
 <!-- مودال نمره‌های ثبت‌شدهٔ دانش‌آموز -->
+<!-- [chart-modal] مودال نمودار نمرات (دایره‌ای + میله‌ای) -->
+<div class="modal-overlay" id="modalGradeChart">
+    <div class="modal" style="max-width:480px;">
+        <h2 class="modal-title" id="gcTitle">📊 نمودار نمرات</h2>
+        <div id="gcBody" style="max-height:62vh;overflow:auto;"></div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="btnGcPrint">🖨️ چاپ</button>
+            <button class="btn btn-success" id="btnGcImage">🖼️ دانلود عکس</button>
+            <button class="btn btn-outline" data-close-modal="modalGradeChart">بستن</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="modalStudentGrades">
     <div class="modal" style="max-width:460px;">
         <h2 class="modal-title" id="sgTitle"></h2>
@@ -3737,7 +3770,7 @@ function applyDemoReportLocks() {
     var css = document.createElement('style');
     css.id = 'demo-report-locks';
     css.textContent =
-        '#pvPrint, #pvImage, #btnPrintStudentReport, #btnReportPrintAll, #btnReportDownloadAll { display: none !important; }' +
+        '#pvPrint, #pvImage, #btnPrintStudentReport, #btnReportPrintAll, #btnReportDownloadAll, #btnReportDownloadImages, #btnGcPrint, #btnGcImage { display: none !important; }   /* [report-images][chart-modal] */' +
         '#pvViewer .pv-actions { display: none !important; }' +
         '#printViewer .pv-actions { display: none !important; }';
     if (!document.getElementById('demo-report-locks')) {
@@ -4119,8 +4152,8 @@ function applyDemoReportLocks() {
         html += '<thead><tr>';
         html += '<th>#</th>';
         html += '<th>نام و نام خانوادگی</th>';
-        html += '<th>نام پدر</th>';
-        html += '<th>کد ملی</th>';
+        html += '<th class="st-extra">نام پدر</th>';   // [mobile-table] در موبایل پنهان؛ زیر نام نمایش داده می‌شود
+        html += '<th class="st-extra">کد ملی</th>';
         html += '<th>عملیات</th>';
         html += '</tr></thead><tbody>';
 
@@ -4128,9 +4161,10 @@ function applyDemoReportLocks() {
             var origIdx = allStudents.indexOf(s);
             html += '<tr>';
             html += '<td>' + toPersianNum(origIdx + 1) + '</td>';
-            html += '<td><strong>' + escapeHtml((s.family || '') + ' ' + (s.name || '')) + '</strong></td>';
-            html += '<td>' + escapeHtml(s.father || '—') + '</td>';
-            html += '<td>' + escapeHtml(s.codemelli || '—') + '</td>';
+            html += '<td><strong>' + escapeHtml((s.family || '') + ' ' + (s.name || '')) + '</strong>' +
+                '<div class="st-sub">' + (s.father ? 'پدر: ' + escapeHtml(s.father) : '') + (s.father && s.codemelli ? ' • ' : '') + (s.codemelli ? escapeHtml(s.codemelli) : '') + '</div></td>';   // [mobile-table]
+            html += '<td class="st-extra">' + escapeHtml(s.father || '—') + '</td>';
+            html += '<td class="st-extra">' + escapeHtml(s.codemelli || '—') + '</td>';
             html += '<td><div class="actions-cell">';
             html += '<button class="btn btn-outline btn-sm" data-edit-student="' + origIdx + '">✏️</button>';
             html += '<button class="btn btn-danger btn-sm" data-delete-student="' + origIdx + '">🗑️</button>';
@@ -4335,7 +4369,7 @@ function applyDemoReportLocks() {
         html += '</tbody></table>';
         html += '</body></html>';
 
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'لیست کلاس ' + cls.className });   // [print-image]
     }
 
     function getAdaptiveStyleForPrint(count) {
@@ -5183,12 +5217,7 @@ function applyDemoReportLocks() {
         renderAttendance();
     });
 
-    document.getElementById('btnAttSave').addEventListener('click', function() {
-        saveAttendance();
-        var self = this, orig = self.textContent;
-        self.textContent = '✅ ذخیره شد';
-        setTimeout(function() { self.textContent = orig; }, 1200);
-    });
+    // [remove-att-save] کنترل‌کنندهٔ دکمهٔ ذخیره (btnAttSave) همراه با دکمه حذف شد
 
     document.getElementById('btnAttReport').addEventListener('click', function() { showMonthlyReport(); });
 
@@ -5216,7 +5245,7 @@ function applyDemoReportLocks() {
                 '<td>' + toPersianNum(st.present) + '</td><td>' + toPersianNum(st.absentJ) + '</td><td>' + toPersianNum(st.absentU) + '</td><td>' + toPersianNum(st.late) + '</td></tr>';
         });
         html += '</tbody></table></body></html>';
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'گزارش ماهانه حضور و غیاب ' + cls.className });   // [print-image]
     }
 
     function showMonthlyReport(rFrom, rTo) {
@@ -5635,6 +5664,86 @@ function applyDemoReportLocks() {
         updateGradeStats(cls, key);
     }
 
+    // [chart-modal] شمارش سطوح برای کلاس/درس/تاریخ انتخاب‌شده
+    function gradeChartData() {
+        var cs = document.getElementById('gradeClassSelect');
+        var idx = cs && cs.value !== '' ? parseInt(cs.value) : -1, cls = appData.classes[idx];
+        if (!cls || !currentSubject || !currentGradeDate) return null;
+        var data = gradesData[getGradeKey(cls.className, currentSubject, currentGradeDate)] || {}, counts = { 1: 0, 2: 0, 3: 0, 4: 0 }, total = 0;
+        (cls.students || []).forEach(function(s) {
+            var lv = parseInt(data[s.id]);
+            if (counts[lv] !== undefined) { counts[lv]++; total++; }
+        });
+        return { cls: cls, counts: counts, total: total, count: (cls.students || []).length };
+    }
+    // نمودار دایره‌ای (Pie) و میله‌ای (Bar) به‌صورت SVG؛ کلاس‌های gc-* فقط برای نمایش در برنامه‌اند (چاپ استایل خودش را دارد)
+    function gradeChartsHtml(d, inline) {
+        var fa = function(t) { return String(t).replace(/\d/g, function(x) { return '۰۱۲۳۴۵۶۷۸۹'[x]; }); };
+        var pie = '<svg viewBox="0 0 120 120" width="150" height="150">';
+        if (!d.total) pie += '<circle cx="60" cy="60" r="55" fill="#e5e7eb"/>';
+        else {
+            var ang = -Math.PI / 2, nonzero = [1, 2, 3, 4].filter(function(l) { return d.counts[l]; });
+            if (nonzero.length === 1) pie += '<circle cx="60" cy="60" r="55" fill="' + DESC_LEVELS[nonzero[0]].color + '"/>';
+            else nonzero.forEach(function(l) {
+                var a2 = ang + 2 * Math.PI * d.counts[l] / d.total;
+                var x1 = 60 + 55 * Math.cos(ang), y1 = 60 + 55 * Math.sin(ang), x2 = 60 + 55 * Math.cos(a2), y2 = 60 + 55 * Math.sin(a2);
+                pie += '<path d="M60 60 L' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' A55 55 0 ' + ((a2 - ang) > Math.PI ? 1 : 0) + ' 1 ' + x2.toFixed(2) + ' ' + y2.toFixed(2) + ' Z" fill="' + DESC_LEVELS[l].color + '" stroke="#fff" stroke-width="1.5"/>';
+                ang = a2;
+            });
+        }
+        pie += '</svg>';
+        var legend = [1, 2, 3, 4].map(function(l) {
+            var pc = d.total ? Math.round(d.counts[l] * 100 / d.total) : 0;
+            return '<span style="display:flex;align-items:center;gap:6px;"><i style="width:12px;height:12px;border-radius:3px;display:inline-block;background:' + DESC_LEVELS[l].color + ';"></i>' + DESC_LEVELS[l].label +
+                '<b style="margin-inline-start:auto;padding-inline-start:12px;">' + fa(d.counts[l]) + ' (' + fa(pc) + '٪)</b></span>';
+        }).join('');
+        var max = Math.max(1, d.counts[1], d.counts[2], d.counts[3], d.counts[4]), W = 320, H = 190, base = 150, bw = 50, gap = 22;
+        var bar = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="direction:ltr;display:block;">' +
+            '<line x1="10" x2="' + (W - 10) + '" y1="' + base + '" y2="' + base + '" stroke="#94a3b8"/>';
+        [1, 2, 3, 4].forEach(function(l, i) {
+            var h = Math.round(d.counts[l] / max * 115), x = 10 + gap / 2 + i * (bw + gap) + 4, y = base - h;
+            bar += (h ? '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + h + '" rx="4" fill="' + DESC_LEVELS[l].color + '"/>' : '') +
+                '<text x="' + (x + bw / 2) + '" y="' + (y - 6) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">' + fa(d.counts[l]) + '</text>' +
+                '<text x="' + (x + bw / 2) + '" y="' + (base + 16) + '" text-anchor="middle" font-size="10.5" fill="#475569">' + DESC_LEVELS[l].label + '</text>';
+        });
+        bar += '</svg>';
+        var box = inline ? 'class="gc-box"' : 'style="border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin-bottom:14px;"';
+        return '<div ' + box + '><h3 style="font-size:13px;margin:0 0 6px;">🥧 نمودار دایره‌ای وضعیت کلاس</h3><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;">' + pie +
+            '<div style="display:flex;flex-direction:column;gap:6px;font-size:13px;min-width:170px;">' + legend + '</div></div></div>' +
+            '<div ' + box + '><h3 style="font-size:13px;margin:0 0 6px;">📊 نمودار میله‌ای تعداد هر سطح</h3>' + bar + '</div>';
+    }
+    function gradeChartTitle(d) {
+        return 'کلاس ' + d.cls.className + ' • درس ' + currentSubject + ' • ' + describeJalaliDate(currentGradeDate);
+    }
+    function gradeChartPrintHtml(d) {
+        var html = '<html><head><meta charset="UTF-8"><title>نمودار نمرات</title><style>@page { size: A4 portrait; margin: 0.8cm 1cm 0.3cm 1cm; } ' +
+            '* { -webkit-print-color-adjust: exact; print-color-adjust: exact; } body { font-family: "Vazirmatn","B Nazanin",Tahoma,sans-serif; direction: rtl; margin: 0; } ' +
+            '.h { text-align: center; font-weight: bold; font-size: 15pt; border-bottom: 1.5px solid #000; padding: 4px 0 6px; margin-bottom: 8px; } .sub { text-align: center; font-size: 11pt; margin-bottom: 12px; }</style></head><body>';
+        html += '<div class="h">نمودار نمرات توصیفی</div><div class="sub">' + escapeHtml(gradeChartTitle(d)) + ' • ثبت‌شده: ' + toPersianNum(d.total) + ' از ' + toPersianNum(d.count) + '</div>';
+        return html + gradeChartsHtml(d, false) + '</body></html>';
+    }
+    function openGradeChartModal() {
+        var d = gradeChartData();
+        if (!d) { alert('❌ کلاس، درس و تاریخ را انتخاب کنید.'); return; }
+        document.getElementById('gcTitle').textContent = '📊 نمودار نمرات';
+        document.getElementById('gcBody').innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">' + escapeHtml(gradeChartTitle(d)) + ' • ثبت‌شده: ' + toPersianNum(d.total) + ' از ' + toPersianNum(d.count) + '</div>' +
+            (d.total ? '<div class="gc-wrap">' + gradeChartsHtml(d, true) + '</div>' : '<div class="no-result">برای این درس و تاریخ هنوز نمره‌ای ثبت نشده است.</div>');
+        document.getElementById('modalGradeChart').classList.add('open');
+    }
+    document.getElementById('btnGradeChart').addEventListener('click', openGradeChartModal);
+    document.getElementById('btnGcPrint').addEventListener('click', function() {
+        var d = gradeChartData(); if (!d) return;
+        openPrintWindow(gradeChartPrintHtml(d), { imageName: 'نمودار نمرات ' + d.cls.className + ' ' + currentSubject + ' ' + currentGradeDate.replace(/\//g, '-') });
+    });
+    document.getElementById('btnGcImage').addEventListener('click', function() {
+        var d = gradeChartData(); if (!d) return;
+        var btn = this, orig = btn.textContent; btn.disabled = true; btn.textContent = '⏳ در حال ساخت عکس...';
+        htmlToPngBlob(gradeChartPrintHtml(d)).then(function(blob) {
+            saveBlob(blob, safeFileName('نمودار نمرات ' + d.cls.className + ' ' + currentSubject + ' ' + currentGradeDate.replace(/\//g, '-')) + '.png');
+        }).catch(function(e) { alert('❌ ساخت عکس ممکن نشد: ' + (e && e.message ? e.message : 'خطا')); })
+          .then(function() { btn.disabled = false; btn.textContent = orig; });
+    });
+
     function updateGradeStats(cls, key) {
         var data = gradesData[key] || {};
         var students = cls.students || [];
@@ -5807,7 +5916,7 @@ function applyDemoReportLocks() {
         });
         html += '</tbody></table></body></html>';
 
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'نمرات ' + cls.className + ' ' + subject + ' ' + String(date).replace(/\//g, '-') });   // [print-image]
     }
 
     /* ====== گزارش ماهانه ====== */
@@ -5967,7 +6076,7 @@ function applyDemoReportLocks() {
         });
 
         html += '</tbody></table></body></html>';
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'گزارش نمرات ' + cls.className + ' ' + subject });   // [print-image]
     }
 
     function printMonthlyStudentReport(cls, student, fromMonth, toMonth) {
@@ -6058,7 +6167,7 @@ function applyDemoReportLocks() {
         });
 
         html += '</tbody></table></body></html>';
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'گزارش نمرات ' + ((student.family || '') + ' ' + (student.name || '')).trim() });   // [print-image]
     }
 
     /* ====== Hook صفحه ====== */
@@ -6501,7 +6610,7 @@ function applyDemoReportLocks() {
         html += '</div>';
 
         html += '</body></html>';
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'گزارش رفتار ' + cls.className });   // [print-image]
     }
 
     // ═══ فیلترها ═══
@@ -7110,7 +7219,7 @@ function applyDemoReportLocks() {
         html += '</div>';
 
         html += '</body></html>';
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'گزارش تکلیف ' + cls.className + ' ' + (hw.title || '') });   // [print-image]
     }
 
     // ===== گزارش تکالیف کلاس: ماتریس دانش‌آموز × تکلیف (با فیلتر درس و ماهِ صفحه) =====
@@ -7163,7 +7272,7 @@ function applyDemoReportLocks() {
         html += '</tbody></table>';
         html += '<div style="margin-top:6px;font-size:' + Math.max(7, fs - 1) + 'pt;">درصد انجام = (کامل + نصفِ ناقص) ÷ تعداد تکالیف. «—» یعنی وضعیتی ثبت نشده.</div>';
         html += '</body></html>';
-        openPrintWindow(html);
+        openPrintWindow(html, { imageName: 'گزارش تکالیف ' + cls.className });   // [print-image]
     }
     document.getElementById('btnHwClassReport').addEventListener('click', function() {
         if (currentHwClass < 0) { alert('ابتدا یک کلاس انتخاب کنید.'); return; }
@@ -7966,10 +8075,10 @@ function applyDemoReportLocks() {
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 4000);
     }
-    function downloadAllStudentPdfs(cls) {
+    function downloadAllStudentPdfs(cls, asImage) {   // [report-images] asImage=true: هر کارنامه PNG با کیفیت بالا
         var students = cls.students || [];
         if (!students.length) { alert('❌ کلاس دانش‌آموز ندارد.'); return; }
-        if (!confirm('کارنامهٔ ' + toPersianNum(students.length) + ' دانش‌آموز، هرکدام در یک فایل PDF جداگانه دانلود شود؟\n(اگر مرورگر پرسید، «دانلود چند فایل» را مجاز کنید.)')) return;
+        if (!confirm('کارنامهٔ ' + toPersianNum(students.length) + ' دانش‌آموز، هرکدام در یک فایل ' + (asImage ? 'عکس (PNG)' : 'PDF') + ' جداگانه دانلود شود؟\n(اگر مرورگر پرسید، «دانلود چند فایل» را مجاز کنید.)')) return;
         var ov = document.createElement('div');
         ov.className = 'modal-overlay open'; ov.style.zIndex = '4000'; ov.setAttribute('data-noback','1');
         ov.innerHTML = '<div class="modal exit-box"><div class="exit-ico">⬇️</div><h2 class="modal-title" style="border:0;margin-bottom:6px;">در حال ساخت کارنامه‌ها</h2>' +
@@ -7987,14 +8096,14 @@ function applyDemoReportLocks() {
             document.getElementById('pdfDlBar').style.width = Math.round(i / students.length * 100) + '%';
             var stats = calcStudentStats(cls, s);
             var html = '<html><head><meta charset="UTF-8"><style>' + cardCss() + '</style></head><body><div class="page">' + buildCardBody(cls, s, stats) + '</div></body></html>';
-            htmlToPdfBlob(html).then(function(blob) {
+            (asImage ? htmlToPngBlob(html) : htmlToPdfBlob(html)).then(function(blob) {   // [report-images]
                 var base = safeFileName((s.family || '') + ' ' + (s.name || '')), n = base;
                 if (used[n]) { used[base]++; n = base + ' (' + used[base] + ')'; } else used[n] = 1;
-                saveBlob(blob, n + '.pdf');
+                saveBlob(blob, n + (asImage ? '.png' : '.pdf'));
             }).catch(function(e) { fails++; console.error(e); }).then(function() {
                 if (fails >= 1 && fails === i && i <= 1) { // اولین کارنامه هم ساخته نشد: مرورگر پشتیبانی نمی‌کند
                     ov.remove();
-                    if (confirm('ساخت مستقیم PDF در این مرورگر ممکن نشد.\nکارنامه‌ها در پنجرهٔ چاپ باز شوند تا با «ذخیره به‌صورت PDF» ذخیره کنید؟')) printAllStudentReports(cls);
+                    if (confirm('ساخت مستقیم ' + (asImage ? 'عکس' : 'PDF') + ' در این مرورگر ممکن نشد.\nکارنامه‌ها در پنجرهٔ چاپ باز شوند تا با «ذخیره به‌صورت PDF» ذخیره کنید؟')) printAllStudentReports(cls);
                     return;
                 }
                 setTimeout(next, 450);
@@ -8226,6 +8335,11 @@ function applyDemoReportLocks() {
     document.getElementById('btnReportPrintAll').addEventListener('click', function() {
         if (currentReportClass < 0) { alert('❌ ابتدا یک کلاس انتخاب کنید.'); return; }
         printAllStudentReports(appData.classes[currentReportClass]);
+    });
+
+    document.getElementById('btnReportDownloadImages').addEventListener('click', function() {   // [report-images]
+        if (currentReportClass < 0) { alert('❌ ابتدا یک کلاس انتخاب کنید.'); return; }
+        downloadAllStudentPdfs(appData.classes[currentReportClass], true);
     });
 
     document.getElementById('btnReportDownloadAll').addEventListener('click', function() {
@@ -8958,7 +9072,7 @@ function applyDemoReportLocks() {
     /* ═══════════════════════════════════════════════════
        🔄 به‌روزرسانی از GitHub
        ═══════════════════════════════════════════════════ */
-    var APP_VERSION = '4.6.21';
+    var APP_VERSION = '4.6.22';
     var realLS = window.CMStore;   // [fix-11] UPD_KEY حذف شد (بدون استفاده)
     var pendingUpdate = null;
 

@@ -2,7 +2,7 @@
    📱 Service Worker - کلاس‌یار
    ═══════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'cmc-app-v25';
+var CACHE_NAME = 'cmc-app-v26';
 var CACHE_PREFIX = 'cmc-app-'; // فقط کش‌های همین برنامه؛ به کش برنامه‌های دیگرِ همین دامنه دست نمی‌زنیم
 var CACHE_FILES = [
     './',
